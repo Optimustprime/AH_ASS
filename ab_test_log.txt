@@ -1,0 +1,90 @@
+Test run at: Sat May 18 22:57:01 CEST 2024
+This is ApacheBench, Version 2.3 <$Revision: 1879490 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking ec2-34-255-118-76.eu-west-1.compute.amazonaws.com (be patient)
+
+
+Server Software:        uvicorn
+Server Hostname:        ec2-34-255-118-76.eu-west-1.compute.amazonaws.com
+Server Port:            8000
+
+Document Path:          /stream/21
+Document Length:        0 bytes
+
+Concurrency Level:      700
+Time taken for tests:   6.737 seconds
+Complete requests:      1000
+Failed requests:        0
+Non-2xx responses:      1000
+Total transferred:      330000 bytes
+HTML transferred:       0 bytes
+Requests per second:    148.43 [#/sec] (mean)
+Time per request:       4716.146 [ms] (mean)
+Time per request:       6.737 [ms] (mean, across all concurrent requests)
+Transfer rate:          47.83 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:      123  185 164.9    161    1216
+Processing:   187 3624 1344.4   3161    5907
+Waiting:      156 3584 1340.7   3122    5845
+Total:        313 3809 1356.7   3465    6091
+
+Percentage of the requests served within a certain time (ms)
+  50%   3465
+  66%   4458
+  75%   5028
+  80%   5416
+  90%   5916
+  95%   5939
+  98%   5945
+  99%   6038
+ 100%   6091 (longest request)
+
+Test run at: Tue May 28 13:38:49 CEST 2024
+This is ApacheBench, Version 2.3 <$Revision: 1879490 $>
+Copyright 1996 Adam Twiss, Zeus Technology Ltd, http://www.zeustech.net/
+Licensed to The Apache Software Foundation, http://www.apache.org/
+
+Benchmarking ec2-34-255-118-76.eu-west-1.compute.amazonaws.com (be patient)
+
+
+Server Software:        uvicorn
+Server Hostname:        ec2-34-255-118-76.eu-west-1.compute.amazonaws.com
+Server Port:            8000
+
+Document Path:          /campaigns/21
+Document Length:        0 bytes
+
+Concurrency Level:      700
+Time taken for tests:   6.253 seconds
+Complete requests:      1000
+Failed requests:        0
+Non-2xx responses:      1000
+Total transferred:      333000 bytes
+HTML transferred:       0 bytes
+Requests per second:    159.92 [#/sec] (mean)
+Time per request:       4377.117 [ms] (mean)
+Time per request:       6.253 [ms] (mean, across all concurrent requests)
+Transfer rate:          52.01 [Kbytes/sec] received
+
+Connection Times (ms)
+              min  mean[+/-sd] median   max
+Connect:       24   90 103.9     89    1072
+Processing:   305 3562 1436.2   3103    5717
+Waiting:      174 3521 1428.2   3101    5711
+Total:        335 3652 1449.6   3233    5835
+
+Percentage of the requests served within a certain time (ms)
+  50%   3233
+  66%   4584
+  75%   5086
+  80%   5410
+  90%   5643
+  95%   5692
+  98%   5811
+  99%   5825
+ 100%   5835 (longest request)
+

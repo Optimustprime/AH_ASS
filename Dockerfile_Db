@@ -1,0 +1,7 @@
+# Use the official PostgreSQL image
+FROM postgres:latest
+# Copy the CSV file from the current directory to the container
+COPY ./cleaned_csv /cleaned_csv
+
+# Copy a SQL initialization script to the container
+COPY init.sql /docker-entrypoint-initdb.d/
