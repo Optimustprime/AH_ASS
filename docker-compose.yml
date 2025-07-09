@@ -17,28 +17,98 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
-      - SECRET_KEY=${DJANGO_SECRET_KEY}
-      - ACCESS_KEY=${ACCESS_KEY}
-      - AWS_SECRET_KEY=${AWS_SECRET_KEY}
       - ENV=${ENV}
     depends_on:
       - db
+      - kafka
+    networks:
+      - default
+      - kafka-net
+
   db:
-    build:
-      context: .
-      dockerfile: Dockerfile_Db
+    image: postgres:13-alpine
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
     environment:
       - POSTGRES_DB=${DB_NAME}
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASS}
     ports:
-      - "5432:5432"
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-      - ./data:/data
+        - "5432:5432"
+
+  zookeeper:
+     image: confluentinc/cp-zookeeper:7.4.0
+     container_name: zookeeper
+     networks:
+       - kafka-net
+     environment:
+       ZOOKEEPER_CLIENT_PORT: 2181
+       ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: kafka
+    networks:
+      - kafka-net
+    depends_on:
+      - zookeeper
+    ports:
+      - "9091:9091"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9091"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+#
+#   kafka-1:
+#     image: confluentinc/cp-kafka
+#     container_name: kafka-1
+#     networks:
+#       - kafka-net
+#     depends_on:
+#       - zookeeper
+#     ports:
+#       - "9092:9092"
+#     environment:
+#       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+#       KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-1:9092"
+#       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+#       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+
+#     kafka-2:
+#       image: confluentinc/cp-kafka
+#       container_name: kafka-2
+#       networks:
+#         - kafka-net
+#       depends_on:
+#         - zookeeper
+#       ports:
+#         - "9093:9093"
+#       environment:
+#         KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+#         KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-2:9093"
+#         KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+#         KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+
+#     kafka-3:
+#       image: confluentinc/cp-kafka
+#       container_name: kafka-3
+#       networks:
+#         - kafka-net
+#       depends_on:
+#         - zookeeper
+#       environment:
+#         KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+#         KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-3:9094"
+#         KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+#         KAFKA_DEFAULT_REPLICATION_FACTOR: 1
 
 
-
+networks:
+  kafka-net:
+    driver: bridge
 
 volumes:
   postgres-data:

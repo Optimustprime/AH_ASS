@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ad Display</title>
+    <style>
+        .ad-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .ad-content {
+            text-align: center;
+        }
+        .ad-title {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .ad-format {
+            color: #666;
+            font-style: italic;
+            margin-bottom: 15px;
+        }
+        .ad-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        .ad-link:hover {
+            background-color: #0056b3;
+        }
+        .error-message {
+            color: #dc3545;
+            text-align: center;
+            padding: 20px;
+        }.controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .control-button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        .control-button:hover {
+            background-color: #218838;
+        }
+    </style>
+</head>
+<body>
+<div class="ad-container">
+    <div id="ad-display" class="ad-content">
+        <p>Click the button below to start ad stream</p>
+    </div>
+    <div class="controls">
+        <button id="toggleStream" class="control-button">Start Stream</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const adDisplay = document.getElementById('ad-display');
+        const toggleButton = document.getElementById('toggleStream');
+        let eventSource = null;
+        let currentAdvertiserId = {{ advertiser_id }};
+
+        function trackAdClick(adId) {
+            fetch('/ads/track-click/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    advertiser_id: currentAdvertiserId,
+                    ad_id: adId
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Click tracked:', data);
+            })
+            .catch(error => {
+                console.error('Error tracking click:', error);
+            });
+        }
+
+        function startStream() {
+            adDisplay.innerHTML = '<p>Loading ads...</p>';
+
+            eventSource = new EventSource('/ads/stream/{{ advertiser_id }}/');
+            console.log('Connecting to SSE at /ads/stream/{{ advertiser_id }}/');
+
+            eventSource.onmessage = function(event) {
+                console.log('Received message:', event.data);
+                try {
+                    const data = JSON.parse(event.data);
+
+                    if (data.message) {
+                        adDisplay.innerHTML = `
+                            <div class="error-message">${data.message}</div>
+                        `;
+                    } else {
+                        console.log('Ad data received:', data);
+                        const adId = data.ad_id;
+                        adDisplay.innerHTML = `
+                            <h2 class="ad-title">${data.ad_title}</h2>
+                            <div class="ad-format">Format: ${data.ad_format}</div>
+                            <img src="${data.product_link}"
+                                 alt="${data.ad_title}"
+                                 style="max-width: 100%; height: auto; border-radius: 5px; cursor: pointer;"
+                                 onclick="window.trackAdClick('${adId}')"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <div style="display: none; color: #666; font-style: italic;">Image not available</div>
+                        `;
+                    }
+                } catch (e) {
+                    console.error('Error processing message:', e);
+                }
+            };
+
+            eventSource.onerror = function(event) {
+                console.error('SSE Error:', event);
+                if (eventSource.readyState === EventSource.CLOSED) {
+                    adDisplay.innerHTML = `
+                        <div class="error-message">Connection lost. Please restart stream.</div>
+                    `;
+                }
+            };
+
+            eventSource.onopen = function(event) {
+                console.log('SSE connection opened');
+            };
+
+            toggleButton.textContent = 'Stop Stream';
+        }
+
+        function stopStream() {
+            if (eventSource) {
+                console.log('Closing SSE connection');
+                eventSource.close();
+                eventSource = null;
+                adDisplay.innerHTML = '<p>Stream stopped</p>';
+                toggleButton.textContent = 'Start Stream';
+            }
+        }
+
+        toggleButton.addEventListener('click', function() {
+            if (eventSource) {
+                stopStream();
+            } else {
+                startStream();
+            }
+        });
+
+        // Expose trackAdClick to the window object so it can be called from inline HTML
+        window.trackAdClick = trackAdClick;
+    });
+</script>
+</body>
+</html>

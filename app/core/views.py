@@ -1,49 +1,108 @@
-import asyncio
-from typing import AsyncGenerator
-
-from asgiref.sync import sync_to_async
-from django.http import StreamingHttpResponse
+from .models import User, Advertiser, Ad, ClickEvent, BudgetEvent, SpendSummary
+from rest_framework import authentication, generics, status, viewsets
+from rest_framework.response import Response
+from rest_framework_api_key.permissions import HasAPIKey
+from django.http import StreamingHttpResponse, HttpResponse
 from django.shortcuts import render
+from asgiref.sync import sync_to_async
+from django.views.decorators.csrf import csrf_exempt
+from django.views.decorators.http import require_http_methods
+from .kafka_producer import KafkaClickProducer
+import json
+from core.serializers import UserSerializer, AdvertiserSerializer
 
-from .helper import randomize_list, business_requirements
-from .models import click_1, conversions_1, click_2, click_3, click_4, conversions_2, conversions_3, conversions_4
+class CreateUserView(generics.CreateAPIView):
+    """Create a new user and associated advertiser in the system."""
+    serializer_class = UserSerializer
+    permission_classes = [HasAPIKey]
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        # Create advertiser first if advertiser data is provided
+        advertiser_data = request.data.get('advertiser')
+        advertiser = None
+        if advertiser_data:
+            advertiser_serializer = AdvertiserSerializer(data=advertiser_data)
+            advertiser_serializer.is_valid(raise_exception=True)
+            advertiser = advertiser_serializer.save()
+
+        # Create user and link to advertiser
+        user = serializer.save()
+        if advertiser:
+            user.advertiser = advertiser
+            user.save()
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(
+            serializer.data,
+            status=status.HTTP_201_CREATED,
+            headers=headers
+        )
+
+class ManageUserView(viewsets.ViewSetMixin, generics.RetrieveUpdateAPIView):
+    """Manage the authenticated user and edit data."""
+    serializer_class = UserSerializer
+    authentication_classes = [authentication.TokenAuthentication]
+
+    def get_object(self):
+        return self.request.user
 
 
-async def sse_stream(request, campaign_id: int) -> StreamingHttpResponse:
-    """
-    Sends server-sent events to the client. This function handles the streaming of banners
-    for a specific campaign, updating the banners based on different business scenarios.
+async def get_valid_ads(advertiser_id: int) -> list:
+    """Get valid ads for an advertiser based on budget and spend."""
+    advertiser = await sync_to_async(Advertiser.objects.get)(advertiser_id=advertiser_id)
 
-    Args:
-        request (HttpRequest): The HTTP request object.
+    budget_query = BudgetEvent.objects.filter(advertiser=advertiser).order_by('-event_time')
 
-    Returns:
-        StreamingHttpResponse: A streaming HTTP response with server-sent events.
-    """
-    # Run business requirements concurrently
-    sets_of_business_scenerios = await asyncio.gather(
-        sync_to_async(business_requirements)(campaign_id, click_1, conversions_1),
-        sync_to_async(business_requirements)(campaign_id, click_2, conversions_2),
-        sync_to_async(business_requirements)(campaign_id, click_3, conversions_3),
-        sync_to_async(business_requirements)(campaign_id, click_4, conversions_4)
-    )
+    # Execute query and print all results
+    all_budgets = await sync_to_async(lambda: list(budget_query))()
 
-    async def event_stream() -> AsyncGenerator[str, None]:
-        """
-       Generates the server-sent events by iterating through business scenarios,
-       randomizing the banner order, and yielding the banners one by one.
+    latest_budget = await sync_to_async(
+        lambda: budget_query.first()
+    )()
 
-       Yields:
-           str: The next banner data to be sent to the client.
-       """
+    # Get current spend
+    current_spend = await sync_to_async(
+        lambda: SpendSummary.objects.filter(advertiser=advertiser).order_by('-window_end').first()
+    )()
+
+    if not latest_budget or not current_spend or not current_spend.can_serve:
+        return []
+
+    # Get valid ads
+    ads = await sync_to_async(
+        lambda: list(Ad.objects.filter(
+            advertiser=advertiser,
+            is_active=True
+        ).values('ad_id', 'ad_title', 'ad_format', 'product_link'))
+    )()
+
+    return ads
+
+async def sse_stream(request, advertiser_id: int) -> StreamingHttpResponse:
+    """Stream valid ads for an advertiser, one at a time."""
+    # Get valid ads asynchronously first (like your working example)
+    valid_ads = await get_valid_ads(advertiser_id)
+
+    def event_stream():  # Remove async here
+        """Generate server-sent events, sending one ad at a time."""
+        import time  # Use synchronous sleep
+
         try:
             while True:
-                for scenerio in sets_of_business_scenerios:
-                    scenerio = randomize_list(scenerio)
-                    duration = round((15 * 60) / len(scenerio), 1)
-                    for items in scenerio:
-                        yield f'data: {items}\n\n'
-                        await asyncio.sleep(duration)
+                if valid_ads:
+                    for ad in valid_ads:
+                        current_ad = ad
+                        yield f'data: {json.dumps(current_ad)}\n\n'
+                        time.sleep(5)  # Synchronous sleep instead of await asyncio.sleep(5)
+
+                    time.sleep(10)  # Synchronous sleep instead of await asyncio.sleep(10)
+
+        except Exception as e:
+            print(f"Stream error: {e}")
+            yield f'data: {json.dumps({"message": "Error in stream"})}\n\n'
         finally:
             return
 
@@ -53,14 +112,58 @@ async def sse_stream(request, campaign_id: int) -> StreamingHttpResponse:
     return response
 
 
-def index(request):
-    """
-    Renders the banner HTML page.
 
-    Args:
-        request (HttpRequest): The HTTP request object.
+def serve_ads(request, advertiser_id):
+    """Render the ad serving page."""
+    return render(request, 'ads.html', {'advertiser_id': advertiser_id})
 
-    Returns:
-        HttpResponse: The rendered HTML page.
-    """
-    return render(request, 'banner.html')
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def track_ad_click(request):
+    """Track ad click and send to Kafka."""
+    try:
+        data = json.loads(request.body)
+        advertiser_id = data.get('advertiser_id')
+        ad_id = data.get('ad_id')
+
+        if not advertiser_id or not ad_id:
+            return HttpResponse(
+                json.dumps({"error": "Missing advertiser_id or ad_id"}),
+                content_type="application/json",
+                status=400
+            )
+        # if os.environ.get('ENV') == 'production':
+        #     from .azure_kafka_producer import AzureKafkaClickProducer
+        #     producer = AzureKafkaClickProducer()
+        # else:
+        #     from .kafka_producer import KafkaClickProducer
+        #     producer = KafkaClickProducer()
+
+        producer = KafkaClickProducer()
+        success = producer.send_click_event(
+            advertiser_id=int(advertiser_id),
+            ad_id=ad_id
+        )
+        producer.close()
+
+        if success:
+            return HttpResponse(
+                json.dumps({"status": "success"}),
+                content_type="application/json"
+            )
+        else:
+            return HttpResponse(
+                json.dumps({"error": "Failed to send event"}),
+                content_type="application/json",
+                status=500
+            )
+
+    except Exception as e:
+        print(f"Error tracking click: {e}")
+        return HttpResponse(
+            json.dumps({"error": "Internal server error"}),
+            content_type="application/json",
+            status=500
+        )
