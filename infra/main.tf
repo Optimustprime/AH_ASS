@@ -111,8 +111,23 @@ resource "azurerm_container_app" "main" {
       memory = "1Gi"
 
       env {
-        name  = "DATABASE_URL"
-        value = "mssql://${var.db_username}:${var.db_password}@${azurerm_mssql_server.main.fully_qualified_domain_name}:1433/${azurerm_mssql_database.main.name}"
+        name  = "DB_HOST"
+        value = azurerm_mssql_server.main.fully_qualified_domain_name
+      }
+
+      env {
+        name  = "DB_NAME"
+        value = azurerm_mssql_database.main.name
+      }
+
+      env {
+        name  = "DB_USER"
+        value = var.db_username
+      }
+
+      env {
+        name  = "DB_PASS"
+        value = var.db_password
       }
 
       env {
