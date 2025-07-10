@@ -129,7 +129,7 @@ resource "azurerm_eventhub_namespace" "kafka" {
   resource_group_name = azurerm_resource_group.main.name
   sku                 = "Standard"
   capacity            = 1
-  auto-inflate_enabled = true
+  auto_inflate_enabled = true
   maximum_throughput_units = 5
 }
 
