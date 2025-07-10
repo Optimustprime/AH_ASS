@@ -1,4 +1,4 @@
-FROM python:3.10-slim
+FROM python:3.10-slim-buster
 LABEL maintainer="AHASS"
 
 ENV PYTHONUNBUFFERED=1
@@ -8,20 +8,15 @@ COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
 
 RUN apt-get update && apt-get install -y \
-    gcc g++ gnupg curl unixodbc-dev \
+    gcc g++ gnupg curl unixodbc-dev libjpeg-dev zlib1g-dev build-essential linux-headers-amd64 \
     && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
     && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql17
-
-
-RUN python -m venv /py && \
-    /py/bin/pip install --upgrade pip && \
-    apk add --update --no-cache postgresql-client jpeg-dev libstdc++ && \
-    apk add --update --no-cache --virtual .tmp-build-deps \
-        build-base postgresql-dev musl-dev zlib zlib-dev linux-headers && \
-    /py/bin/pip install -r /tmp/requirements.txt && \
-    rm -rf /tmp && \
-    apk del .tmp-build-deps
+    && apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql17 \
+    && apt-get clean && rm -rf /var/lib/apt/lists/* \
+    && python -m venv /py \
+    && /py/bin/pip install --upgrade pip \
+    && /py/bin/pip install -r /tmp/requirements.txt \
+    && rm -rf /tmp
 
 # Set environment variables
 ENV PATH="/scripts:/py/bin:$PATH"
@@ -41,8 +36,6 @@ RUN if [ "$DEV" = "true" ]; then /py/bin/pip install -r /tmp/requirements.dev.tx
     chmod -R 755 /vol && \
     chmod -R +x /scripts && \
     chown -R django-user:django-user /app
-
-#RUN pytest
 
 USER django-user
 
