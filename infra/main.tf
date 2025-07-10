@@ -15,6 +15,8 @@ provider "azurerm" {
 }
 
 
+
+
 terraform {
   required_providers {
     azurerm = {

@@ -59,7 +59,8 @@ jobs:
           TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
           TF_VAR_event_hub_connection_string: ${{ secrets.EVENT_HUB_CONNECTION_STRING }}
-
+          DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+          DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}
 
       - name: Terraform Apply
         run: |
