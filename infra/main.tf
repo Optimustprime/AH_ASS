@@ -21,6 +21,11 @@ terraform {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
     }
+
+    databricks = {
+      source  = "databricks/databricks"
+      version = "~> 1.0"
+    }
   }
   backend "azurerm" {
     resource_group_name  = "ahass-assignment-rg"
