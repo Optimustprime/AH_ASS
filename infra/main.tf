@@ -43,6 +43,17 @@ resource "azurerm_mssql_server" "main" {
   administrator_login_password = var.db_password
 }
 
+resource "azurerm_role_assignment" "sql_access" {
+  scope                = azurerm_mssql_server.main.id
+  role_definition_name = "db_datawriter"
+  principal_id         = azurerm_container_app.main.identity[0].principal_id
+
+  depends_on = [
+    azurerm_container_app.main,
+    azurerm_mssql_server.main
+  ]
+}
+
 resource "azurerm_mssql_database" "main" {
   name           = var.sql_database_name
   server_id      = azurerm_mssql_server.main.id
