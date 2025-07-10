@@ -70,12 +70,13 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 ]
 CORS_ALLOW_ALL_ORIGINS = True
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:8000','http://django-app.wittyrock-b142b432.centralus.azurecontainerapps.io']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:8000','http://django-app.wittyrock-b142b432.centralus.azurecontainerapps.io', 'https://django-app.wittyrock-b142b432.centralus.azurecontainerapps.io']
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:8000',
     'http://localhost',
     'http://django-app.wittyrock-b142b432.centralus.azurecontainerapps.io',
+    'https://django-app.wittyrock-b142b432.centralus.azurecontainerapps.io',
     # Add any other allowed origins here
 ]
 
