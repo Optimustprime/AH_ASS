@@ -47,7 +47,8 @@ jobs:
       - name: Terraform Apply
         run: |
           cd infra
-          terraform apply -auto-approve
+          terraform apply -auto-approve \
+            -var="image_tag=${{ github.sha }}"
         env:
           TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}

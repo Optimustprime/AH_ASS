@@ -58,3 +58,8 @@ variable "container_app_env_name" {
   description = "Name of the Container App Environment"
   default     = "ahass-container-env"
 }
+variable "image_tag" {
+  type        = string
+  description = "Container image tag to deploy"
+  default     = "latest"
+}

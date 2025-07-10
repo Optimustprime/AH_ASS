@@ -2,7 +2,10 @@ import {
   to = azurerm_resource_group.main
   id = "/subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg"
 }
-
+import {
+  to = azurerm_mssql_firewall_rule.allow_azure_services
+  id = "/subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg/providers/Microsoft.Sql/servers/ahass-sql-server/firewallRules/AllowAzureServices"
+}
 
 provider "azurerm" {
   features {}
@@ -73,10 +76,16 @@ resource "azurerm_container_app" "main" {
   resource_group_name         = azurerm_resource_group.main.name
   revision_mode               = "Single"
 
+  registry {
+    server   = azurerm_container_registry.main.login_server
+    username = azurerm_container_registry.main.admin_username
+    password = azurerm_container_registry.main.admin_password
+  }
+
   template {
     container {
       name   = "django-app"
-      image  = "${azurerm_container_registry.main.login_server}/django-app:latest"
+      image  = "${azurerm_container_registry.main.login_server}/django-app:${var.image_tag}"
       cpu    = 0.5
       memory = "1Gi"
 
