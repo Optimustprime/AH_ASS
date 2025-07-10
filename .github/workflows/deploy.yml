@@ -49,6 +49,13 @@ jobs:
           cd infra
           terraform init
 
+      - name: Reset Container App State
+        run: |
+          cd infra
+          terraform state rm azurerm_container_app.main
+          terraform import azurerm_container_app.main /subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg/providers/Microsoft.App/containerApps/django-app
+
+
       - name: Terraform Plan
         run: |
           cd infra

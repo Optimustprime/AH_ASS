@@ -106,7 +106,7 @@ resource "azurerm_container_app" "main" {
   template {
     container {
       name   = "django-app"
-      image  = "${azurerm_container_registry.main.login_server}/django-app:${var.image_tag}"
+      image  = "${azurerm_container_registry.main.login_server}/django-app:latest"
       cpu    = "0.5"
       memory = "1Gi"
 
@@ -151,7 +151,8 @@ resource "azurerm_container_app" "main" {
 
   lifecycle {
     ignore_changes = [
-      template[0].container[0].image
+      template[0].container[0].image,
+      template[0].container[0].env
     ]
   }
 }
