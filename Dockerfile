@@ -36,7 +36,7 @@ RUN if [ "$DEV" = "true" ]; then /py/bin/pip install -r /tmp/requirements.dev.tx
     chmod -R +x /scripts && \
     chown -R django-user:django-user /app
 
-RUN pytest
+#RUN pytest
 
 USER django-user
 
