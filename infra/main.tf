@@ -45,7 +45,7 @@ resource "azurerm_mssql_server" "main" {
 
 resource "azurerm_role_assignment" "sql_access" {
   scope                = azurerm_mssql_server.main.id
-  role_definition_name = "db_datawriter"
+  role_definition_name = "Contributor" # Replace with a valid role
   principal_id         = azurerm_container_app.main.identity[0].principal_id
 
   depends_on = [
