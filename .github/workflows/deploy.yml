@@ -50,16 +50,16 @@ jobs:
           terraform init
 
       - name: Reset Container App State
-         run: |
-           cd infra
-           terraform state rm azurerm_container_app.main
-           terraform import \
-             -var="db_username=${{ secrets.DB_USERNAME }}" \
-             -var="db_password=${{ secrets.DB_PASSWORD }}" \
-             azurerm_container_app.main /subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg/providers/Microsoft.App/containerApps/django-app
-         env:
-           TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
-           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+        run: |
+          cd infra
+          terraform state rm azurerm_container_app.main
+          terraform import \
+            -var="db_username=${{ secrets.DB_USERNAME }}" \
+            -var="db_password=${{ secrets.DB_PASSWORD }}" \
+            azurerm_container_app.main /subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg/providers/Microsoft.App/containerApps/django-app
+        env:
+          TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
 
       - name: Terraform Plan
         run: |
