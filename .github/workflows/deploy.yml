@@ -46,24 +46,6 @@ jobs:
           cd infra
           terraform init
 
-      - name: Clear Terraform Lock
-        run: |
-          cd infra
-          terraform force-unlock -force "a98191cb-b20a-4c9f-9ea4-f0dfe13ee71c"
-        continue-on-error: true
-
-      - name: Reset Container App State
-        run: |
-          cd infra
-          terraform state list || true
-          terraform state rm azurerm_container_app.main || true
-          terraform import \
-            -var="db_username=${{ secrets.DB_USERNAME }}" \
-            -var="db_password=${{ secrets.DB_PASSWORD }}" \
-            azurerm_container_app.main /subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg/providers/Microsoft.App/containerApps/django-app
-        env:
-          TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
-          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
 
       - name: Terraform Plan
         run: |
