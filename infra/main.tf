@@ -163,8 +163,15 @@ resource "azurerm_role_assignment" "acr_pull" {
   principal_id         = azurerm_container_app.main.identity[0].principal_id
 
   depends_on = [
-    azurerm_container_app.main
+    azurerm_container_app.main,
+    azurerm_container_registry.main
   ]
+
+  lifecycle {
+    ignore_changes = [
+      principal_id
+    ]
+  }
 }
 
 resource "azurerm_storage_account" "tfstate" {
