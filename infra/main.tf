@@ -90,8 +90,14 @@ resource "azurerm_container_app" "main" {
   }
 
   registry {
-    server   = azurerm_container_registry.main.login_server
-    identity = "SystemAssigned"
+    server               = azurerm_container_registry.main.login_server
+    username            = azurerm_container_registry.main.admin_username
+    password_secret_name = "registry-password"
+  }
+
+  secret {
+    name  = "registry-password"
+    value = azurerm_container_registry.main.admin_password
   }
 
   template {
