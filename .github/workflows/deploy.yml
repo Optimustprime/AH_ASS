@@ -64,12 +64,22 @@ jobs:
         env:
           TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+      - name: Get Latest Tag
+        id: get_tag
+        run: |
+          LATEST_TAG=$(az acr repository show-tags \
+            --name ahassassignmentrgacr \
+            --repository django-app \
+            --orderby time_desc \
+            --query "[0]" \
+            --output tsv)
+          echo "tag=$LATEST_TAG" >> $GITHUB_OUTPUT
 
       - name: Terraform Apply
         run: |
           cd infra
           terraform apply -auto-approve \
-            -var="image_tag=${{ github.sha }}"
+            -var="image_tag=${{ steps.get_tag.outputs.tag }}"
         env:
           TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
