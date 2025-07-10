@@ -15,17 +15,11 @@ provider "azurerm" {
 }
 
 
-provider "azuread" {}
-
 terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
-    }
-    azuread = {
-      source  = "hashicorp/azuread"
-      version = "~> 2.0"
     }
   }
   backend "azurerm" {
@@ -268,27 +262,5 @@ resource "azurerm_databricks_workspace" "main" {
   }
 }
 
-resource "azuread_application" "databricks_app" {
-  display_name = "${var.resource_group_name}-databricks-sp"
-}
-
-resource "azuread_service_principal" "databricks_sp" {
-  application_id = azuread_application.databricks_app.client_id
-
-}
-
-resource "azuread_application_password" "databricks_sp_password" {
-  application_id = azuread_application.databricks_app.client_id
-  end_date       = "2099-12-31T23:59:59Z"
-}
 
 
-resource "azurerm_role_assignment" "databricks_event_hub_receiver" {
-  scope                = azurerm_eventhub_namespace.kafka.id
-  role_definition_name = "Azure Event Hubs Data Receiver"
-  principal_id         = azuread_service_principal.databricks_sp.object_id
-
-  depends_on = [
-    azurerm_eventhub_namespace.kafka
-  ]
-}
