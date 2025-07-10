@@ -241,6 +241,17 @@ resource "azurerm_role_assignment" "event_hub_sender" {
   ]
 }
 
+resource "azurerm_role_assignment" "databricks_event_hub_receiver" {
+  scope                = azurerm_eventhub_namespace.kafka.id
+  role_definition_name = "Azure Event Hubs Data Receiver"
+  principal_id = azurerm_databricks_workspace.main.identity.principal_id
+
+  depends_on = [
+    azurerm_eventhub_namespace.kafka,
+    azurerm_databricks_workspace.main
+  ]
+}
+
 resource "azurerm_eventhub_consumer_group" "databricks" {
   name                = "databricks-consumer"
   namespace_name      = azurerm_eventhub_namespace.kafka.name
@@ -248,11 +259,16 @@ resource "azurerm_eventhub_consumer_group" "databricks" {
   resource_group_name = azurerm_resource_group.main.name
 }
 
+
 resource "azurerm_databricks_workspace" "main" {
   name                        = "${var.resource_group_name}-databricks"
   resource_group_name         = azurerm_resource_group.main.name
   location                    = azurerm_resource_group.main.location
   sku                         = "standard"
+
+  managed_identity {
+    type = "SystemAssigned"
+  }
 
   tags = {
     Environment = var.environment

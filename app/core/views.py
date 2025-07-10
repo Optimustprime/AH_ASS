@@ -58,7 +58,6 @@ async def get_valid_ads(advertiser_id: int) -> list:
     budget_query = BudgetEvent.objects.filter(advertiser=advertiser).order_by('-event_time')
 
     # Execute query and print all results
-    all_budgets = await sync_to_async(lambda: list(budget_query))()
 
     latest_budget = await sync_to_async(
         lambda: budget_query.first()
