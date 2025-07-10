@@ -278,4 +278,13 @@ resource "databricks_secret" "event_hub_connection_string" {
   scope        = databricks_secret_scope.ahass_scope.name
 }
 
+resource "azurerm_eventhub_authorization_rule" "listen_policy" {
+  name                = "ListenPolicy"
+  eventhub_name       = azurerm_eventhub.ad_clicks.name
+  namespace_name      = azurerm_eventhub_namespace.kafka.name
+  resource_group_name = azurerm_resource_group.main.name
+
+  listen = true
+}
+
 
