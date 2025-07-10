@@ -58,6 +58,7 @@ jobs:
         env:
           TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_event_hub_connection_string: ${{ secrets.EVENT_HUB_CONNECTION_STRING }}
 
 
       - name: Terraform Apply
@@ -67,3 +68,4 @@ jobs:
         env:
           TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
           TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+          TF_VAR_event_hub_connection_string: ${{ secrets.EVENT_HUB_CONNECTION_STRING }}
