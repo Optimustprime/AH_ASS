@@ -273,12 +273,11 @@ resource "azuread_application" "databricks_app" {
 }
 
 resource "azuread_service_principal" "databricks_sp" {
-  application_id = azuread_application.databricks_app.application_id
+  application_object_id = azuread_application.databricks_app.object_id
 }
 
 resource "azuread_application_password" "databricks_sp_password" {
   application_object_id = azuread_application.databricks_app.object_id
-  value                 = random_password.databricks_sp_password.result
   end_date              = "2099-12-31T23:59:59Z"
 }
 
