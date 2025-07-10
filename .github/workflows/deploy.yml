@@ -57,7 +57,8 @@ jobs:
       - name: Reset Container App State
         run: |
           cd infra
-          terraform state rm azurerm_container_app.main
+          terraform state list || true
+          terraform state rm azurerm_container_app.main || true
           terraform import \
             -var="db_username=${{ secrets.DB_USERNAME }}" \
             -var="db_password=${{ secrets.DB_PASSWORD }}" \
