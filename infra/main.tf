@@ -14,11 +14,18 @@ provider "azurerm" {
   features {}
 }
 
+
+provider "azuread" {}
+
 terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 3.0"
+    }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 2.0"
     }
   }
   backend "azurerm" {
@@ -241,16 +248,6 @@ resource "azurerm_role_assignment" "event_hub_sender" {
   ]
 }
 
-resource "azurerm_role_assignment" "databricks_event_hub_receiver" {
-  scope                = azurerm_eventhub_namespace.kafka.id
-  role_definition_name = "Azure Event Hubs Data Receiver"
-  principal_id = azurerm_databricks_workspace.main.identity[0].principal_id
-
-  depends_on = [
-    azurerm_eventhub_namespace.kafka,
-    azurerm_databricks_workspace.main
-  ]
-}
 
 resource "azurerm_eventhub_consumer_group" "databricks" {
   name                = "databricks-consumer"
@@ -261,16 +258,41 @@ resource "azurerm_eventhub_consumer_group" "databricks" {
 
 
 resource "azurerm_databricks_workspace" "main" {
-  name                        = "${var.resource_group_name}-databricks"
-  resource_group_name         = azurerm_resource_group.main.name
-  location                    = azurerm_resource_group.main.location
-  sku                         = "standard"
-
-  identity {
-    type = "SystemAssigned"
-  }
+  name                = "${var.resource_group_name}-databricks"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  sku                 = "standard"
 
   tags = {
     Environment = var.environment
   }
+}
+
+resource "azuread_application" "databricks_app" {
+  display_name = "${var.resource_group_name}-databricks-sp"
+}
+
+resource "azuread_service_principal" "databricks_sp" {
+  application_id = azuread_application.databricks_app.application_id
+}
+
+resource "azuread_application_password" "databricks_sp_password" {
+  application_object_id = azuread_application.databricks_app.object_id
+  value                 = random_password.databricks_sp_password.result
+  end_date              = "2099-12-31T23:59:59Z"
+}
+
+resource "random_password" "databricks_sp_password" {
+  length  = 16
+  special = true
+}
+
+resource "azurerm_role_assignment" "databricks_event_hub_receiver" {
+  scope                = azurerm_eventhub_namespace.kafka.id
+  role_definition_name = "Azure Event Hubs Data Receiver"
+  principal_id         = azuread_service_principal.databricks_sp.object_id
+
+  depends_on = [
+    azurerm_eventhub_namespace.kafka
+  ]
 }
