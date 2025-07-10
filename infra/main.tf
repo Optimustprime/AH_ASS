@@ -6,6 +6,10 @@ import {
   to = azurerm_mssql_firewall_rule.allow_azure_services
   id = "/subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg/providers/Microsoft.Sql/servers/ahass-sql-server/firewallRules/AllowAzureServices"
 }
+import {
+  to = azurerm_container_app.main
+  id = "/subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg/providers/Microsoft.App/containerApps/django-app"
+}
 
 provider "azurerm" {
   features {}
