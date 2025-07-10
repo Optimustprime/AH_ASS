@@ -244,7 +244,7 @@ resource "azurerm_role_assignment" "event_hub_sender" {
 resource "azurerm_role_assignment" "databricks_event_hub_receiver" {
   scope                = azurerm_eventhub_namespace.kafka.id
   role_definition_name = "Azure Event Hubs Data Receiver"
-  principal_id = azurerm_databricks_workspace.main.identity.principal_id
+  principal_id = azurerm_databricks_workspace.main.identity[0].principal_id
 
   depends_on = [
     azurerm_eventhub_namespace.kafka,
@@ -266,7 +266,7 @@ resource "azurerm_databricks_workspace" "main" {
   location                    = azurerm_resource_group.main.location
   sku                         = "standard"
 
-  managed_identity {
+  identity {
     type = "SystemAssigned"
   }
 
