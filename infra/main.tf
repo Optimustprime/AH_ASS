@@ -56,15 +56,6 @@ resource "azurerm_mssql_firewall_rule" "allow_azure_services" {
   end_ip_address   = "0.0.0.0"
 }
 
-resource "azurerm_container_app_registry" "main" {
-  container_app_id = azurerm_container_app.main.id
-  server          = azurerm_container_registry.main.login_server
-  identity        = "SystemAssigned"
-
-  depends_on = [
-    azurerm_role_assignment.acr_pull
-  ]
-}
 
 resource "azurerm_container_registry" "main" {
   name                = lower(replace("${var.resource_group_name}acr", "-", ""))
@@ -96,6 +87,11 @@ resource "azurerm_container_app" "main" {
 
   identity {
     type = "SystemAssigned"
+  }
+
+  registry {
+    server   = azurerm_container_registry.main.login_server
+    identity = "SystemAssigned"
   }
 
   template {
