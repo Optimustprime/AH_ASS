@@ -28,8 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['localhost',
                  '127.0.0.1',
                  '0.0.0.0',
-                 'ec2-34-255-118-76.eu-west-1.compute.amazonaws.com',
-                 '34.255.118.76',
+                 'django-app.wittyrock-b142b432.centralus.azurecontainerapps.io',
                  'localhost:8000']
 
 
@@ -71,13 +70,12 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
 ]
 CORS_ALLOW_ALL_ORIGINS = True
-CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:8000','http://ec2-34-255-118-76.eu-west-1.compute.amazonaws.com','http://34.255.118.76']
+CSRF_TRUSTED_ORIGINS = ['http://localhost:3000', 'http://localhost:8000','http://django-app.wittyrock-b142b432.centralus.azurecontainerapps.io']
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://localhost:8000',
     'http://localhost',
-    'http://ec2-34-255-118-76.eu-west-1.compute.amazonaws.com',
-    'http://34.255.118.76',
+    'http://django-app.wittyrock-b142b432.centralus.azurecontainerapps.io',
     # Add any other allowed origins here
 ]
 
