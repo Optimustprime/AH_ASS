@@ -101,6 +101,7 @@ WSGI_APPLICATION = 'app.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
+# updated from sql db
 
 DATABASES = {
     'default': {
