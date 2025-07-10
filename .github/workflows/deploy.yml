@@ -36,6 +36,14 @@ jobs:
           cd infra
           terraform init
 
+      - name: Terraform Plan
+        run: |
+          cd infra
+          terraform plan -generate-config-out=generated.tf
+        env:
+          TF_VAR_db_username: ${{ secrets.DB_USERNAME }}
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+
       - name: Terraform Apply
         run: |
           cd infra

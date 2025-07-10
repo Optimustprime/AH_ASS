@@ -1,4 +1,8 @@
-# infrastructure/main.tf
+import {
+  to = azurerm_resource_group.main
+  id = "/subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg"
+}
+
 
 provider "azurerm" {
   features {}
