@@ -6,10 +6,6 @@ import {
   to = azurerm_mssql_firewall_rule.allow_azure_services
   id = "/subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg/providers/Microsoft.Sql/servers/ahass-sql-server/firewallRules/AllowAzureServices"
 }
-import {
-  to = azurerm_container_app.main
-  id = "/subscriptions/218034c1-34e2-4baf-8e4d-7ceadffb3900/resourceGroups/ahass-assignment-rg/providers/Microsoft.App/containerApps/django-app"
-}
 
 provider "azurerm" {
   features {}
@@ -81,7 +77,7 @@ resource "azurerm_container_app" "main" {
   revision_mode               = "Single"
 
   registry {
-    server   = azurerm_container_registry.main.login_server
+    server               = azurerm_container_registry.main.login_server
     identity            = "System"
   }
 
@@ -93,7 +89,7 @@ resource "azurerm_container_app" "main" {
     container {
       name   = "django-app"
       image  = "${azurerm_container_registry.main.login_server}/django-app:${var.image_tag}"
-      cpu    = 0.5
+      cpu    = "0.5"
       memory = "1Gi"
 
       env {
@@ -119,14 +115,22 @@ resource "azurerm_container_app" "main" {
   }
 
   ingress {
+    allow_insecure_connections = true
     external_enabled = true
     target_port     = 8000
     transport       = "auto"
+
     traffic_weight {
       percentage      = 100
       latest_revision = true
     }
   }
+
+  depends_on = [
+    azurerm_container_registry.main,
+    azurerm_container_app_environment.main,
+    azurerm_role_assignment.acr_pull
+  ]
 }
 
 resource "azurerm_role_assignment" "acr_pull" {
