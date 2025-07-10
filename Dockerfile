@@ -19,7 +19,6 @@ RUN python -m venv /py && \
 # Set environment variables
 ENV PATH="/scripts:/py/bin:$PATH"
 
-# Copy the rest of the files
 COPY ./scripts /scripts
 COPY ./app /app
 
