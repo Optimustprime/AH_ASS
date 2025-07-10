@@ -56,12 +56,14 @@ resource "azurerm_mssql_firewall_rule" "allow_azure_services" {
   end_ip_address   = "0.0.0.0"
 }
 
-resource "azurerm_container_registry" "main" {
-  name                = "${replace(lower(var.resource_group_name), "-", "")}${var.environment}"
-  resource_group_name = azurerm_resource_group.main.name
-  location           = azurerm_resource_group.main.location
-  sku                = var.container_registry_sku
-  admin_enabled      = true
+resource "azurerm_container_app_registry" "main" {
+  container_app_id = azurerm_container_app.main.id
+  server          = azurerm_container_registry.main.login_server
+  identity        = "SystemAssigned"
+
+  depends_on = [
+    azurerm_role_assignment.acr_pull
+  ]
 }
 
 resource "azurerm_container_app_environment" "main" {
@@ -75,11 +77,6 @@ resource "azurerm_container_app" "main" {
   container_app_environment_id = azurerm_container_app_environment.main.id
   resource_group_name         = azurerm_resource_group.main.name
   revision_mode               = "Single"
-
-  registry {
-    server               = azurerm_container_registry.main.login_server
-    identity            = "System"
-  }
 
   identity {
     type = "SystemAssigned"
@@ -128,15 +125,24 @@ resource "azurerm_container_app" "main" {
 
   depends_on = [
     azurerm_container_registry.main,
-    azurerm_container_app_environment.main,
-    azurerm_role_assignment.acr_pull
+    azurerm_container_app_environment.main
   ]
+
+  lifecycle {
+    ignore_changes = [
+      template[0].container[0].image
+    ]
+  }
 }
 
 resource "azurerm_role_assignment" "acr_pull" {
   scope                = azurerm_container_registry.main.id
   role_definition_name = "AcrPull"
   principal_id         = azurerm_container_app.main.identity[0].principal_id
+
+  depends_on = [
+    azurerm_container_app.main
+  ]
 }
 
 resource "azurerm_storage_account" "tfstate" {
