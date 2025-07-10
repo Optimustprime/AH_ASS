@@ -268,7 +268,8 @@ resource "azurerm_databricks_workspace" "main" {
 }
 
 resource "databricks_secret_scope" "ahass_scope" {
-  name = "ahass-scope"
+  name                     = "ahass-scope"
+  initial_manage_principal = "users"
 }
 
 resource "databricks_secret" "event_hub_connection_string" {
