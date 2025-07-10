@@ -63,3 +63,9 @@ variable "image_tag" {
   description = "Container image tag to deploy"
   default     = "latest"
 }
+
+variable "event_hub_connection_string" {
+  type        = string
+  description = "Connection string for the Azure Event Hub"
+  sensitive   = true
+}

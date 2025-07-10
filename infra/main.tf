@@ -262,5 +262,14 @@ resource "azurerm_databricks_workspace" "main" {
   }
 }
 
+resource "databricks_secret_scope" "ahass_scope" {
+  name = "ahass-scope"
+}
+
+resource "databricks_secret" "event_hub_connection_string" {
+  key          = "EVENT_HUB_CONNECTION_STRING"
+  string_value = var.event_hub_connection_string
+  scope        = databricks_secret_scope.ahass_scope.name
+}
 
 
