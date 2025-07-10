@@ -1,3 +1,5 @@
+from random import random
+
 from .models import User, Advertiser, Ad, ClickEvent, BudgetEvent, SpendSummary
 from rest_framework import authentication, generics, status, viewsets
 from rest_framework.response import Response
@@ -134,17 +136,31 @@ def track_ad_click(request):
                 content_type="application/json",
                 status=400
             )
-        # if os.environ.get('ENV') == 'production':
-        #     from .azure_kafka_producer import AzureKafkaClickProducer
-        #     producer = AzureKafkaClickProducer()
-        # else:
-        #     from .kafka_producer import KafkaClickProducer
-        #     producer = KafkaClickProducer()
+        # Assign a random amount
+        random_amount = random.choice([1.0, 1.1, 1.2, 1.3, 1.4])
+
+
+        # Create a ClickEvent instance
+        advertiser = Advertiser.objects.get(advertiser_id=advertiser_id)
+
+        # Retrieve the latest budget value for the advertiser
+        latest_budget = BudgetEvent.objects.filter(advertiser=advertiser).order_by('-event_time').first()
+        latest_budget_value = latest_budget.new_budget_value if latest_budget else 0.0
+
+
+        ad = Ad.objects.get(ad_id=ad_id)
+        ClickEvent.objects.create(
+            advertiser=advertiser,
+            ad=ad,
+            amount=random_amount
+        )
 
         producer = AzureKafkaClickProducer()
         success = producer.send_click_event(
             advertiser_id=int(advertiser_id),
-            ad_id=ad_id
+            ad_id=ad_id,
+            amount=random_amount,
+            budget_value=latest_budget_value
         )
         producer.close()
 
