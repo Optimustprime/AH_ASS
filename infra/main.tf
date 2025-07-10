@@ -164,12 +164,6 @@ resource "azurerm_container_app" "main" {
     azurerm_container_app_environment.main
   ]
 
-  lifecycle {
-    ignore_changes = [
-      template[0].container[0].image,
-      template[0].container[0].env
-    ]
-  }
 }
 
 resource "azurerm_role_assignment" "acr_pull" {
