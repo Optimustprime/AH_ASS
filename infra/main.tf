@@ -273,20 +273,15 @@ resource "azuread_application" "databricks_app" {
 }
 
 resource "azuread_service_principal" "databricks_sp" {
-  application_id = azuread_application.databricks_app.application_id
+  application_id = azuread_application.databricks_app.client_id
+
 }
 
 resource "azuread_application_password" "databricks_sp_password" {
-  application_id = azuread_application.databricks_app.application_id
-  value          = random_password.databricks_sp_password.result
+  application_id = azuread_application.databricks_app.client_id
   end_date       = "2099-12-31T23:59:59Z"
 }
 
-
-resource "random_password" "databricks_sp_password" {
-  length  = 16
-  special = true
-}
 
 resource "azurerm_role_assignment" "databricks_event_hub_receiver" {
   scope                = azurerm_eventhub_namespace.kafka.id
