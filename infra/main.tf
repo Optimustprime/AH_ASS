@@ -230,6 +230,17 @@ resource "azurerm_eventhub" "ad_clicks" {
   message_retention   = 1
 }
 
+resource "azurerm_role_assignment" "event_hub_sender" {
+  scope                = azurerm_eventhub_namespace.kafka.id
+  role_definition_name = "Azure Event Hubs Data Sender"
+  principal_id         = azurerm_container_app.main.identity[0].principal_id
+
+  depends_on = [
+    azurerm_eventhub_namespace.kafka,
+    azurerm_container_app.main
+  ]
+}
+
 resource "azurerm_eventhub_consumer_group" "databricks" {
   name                = "databricks-consumer"
   namespace_name      = azurerm_eventhub_namespace.kafka.name

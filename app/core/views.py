@@ -7,7 +7,7 @@ from django.shortcuts import render
 from asgiref.sync import sync_to_async
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
-from .kafka_producer import KafkaClickProducer
+from .azure_kafka_producer import AzureKafkaClickProducer
 import json
 from core.serializers import UserSerializer, AdvertiserSerializer
 
@@ -141,7 +141,7 @@ def track_ad_click(request):
         #     from .kafka_producer import KafkaClickProducer
         #     producer = KafkaClickProducer()
 
-        producer = KafkaClickProducer()
+        producer = AzureKafkaClickProducer()
         success = producer.send_click_event(
             advertiser_id=int(advertiser_id),
             ad_id=ad_id
