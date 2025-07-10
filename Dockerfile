@@ -1,11 +1,18 @@
-FROM python:3.10-alpine3.13
-LABEL maintainer="DATACHEF"
+FROM python:3.10-slim
+LABEL maintainer="AHASS"
 
 ENV PYTHONUNBUFFERED=1
 
 # Copy only the requirements files and install dependencies
 COPY ./requirements.txt /tmp/requirements.txt
 COPY ./requirements.dev.txt /tmp/requirements.dev.txt
+
+RUN apt-get update && apt-get install -y \
+    gcc g++ gnupg curl unixodbc-dev \
+    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
+    && curl https://packages.microsoft.com/config/debian/10/prod.list > /etc/apt/sources.list.d/mssql-release.list \
+    && apt-get update && ACCEPT_EULA=Y apt-get install -y msodbcsql17
+
 
 RUN python -m venv /py && \
     /py/bin/pip install --upgrade pip && \
