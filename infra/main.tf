@@ -66,6 +66,22 @@ resource "azurerm_container_app_registry" "main" {
   ]
 }
 
+resource "azurerm_container_registry" "main" {
+  name                = lower(replace("${var.resource_group_name}acr", "-", ""))
+  resource_group_name = azurerm_resource_group.main.name
+  location           = azurerm_resource_group.main.location
+  sku               = var.container_registry_sku
+  admin_enabled     = true
+
+  tags = {
+    environment = var.environment
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+}
+
 resource "azurerm_container_app_environment" "main" {
   name                = var.container_app_env_name
   resource_group_name = azurerm_resource_group.main.name
