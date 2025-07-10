@@ -32,9 +32,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: |
-            ${{ secrets.REGISTRY_LOGIN_SERVER }}/django-app:latest
-            ${{ secrets.REGISTRY_LOGIN_SERVER }}/django-app:${{ github.sha }}
+          tags: ${{ secrets.REGISTRY_LOGIN_SERVER }}/django-app:latest
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
