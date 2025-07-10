@@ -1,5 +1,4 @@
-from random import random
-
+from random import choice
 from .models import User, Advertiser, Ad, ClickEvent, BudgetEvent, SpendSummary
 from rest_framework import authentication, generics, status, viewsets
 from rest_framework.response import Response
@@ -137,7 +136,7 @@ def track_ad_click(request):
                 status=400
             )
         # Assign a random amount
-        random_amount = random.choice([1.0, 1.1, 1.2, 1.3, 1.4])
+        random_amount = choice([1.0, 1.1, 1.2, 1.3, 1.4])
 
 
         # Create a ClickEvent instance
