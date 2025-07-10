@@ -78,8 +78,11 @@ resource "azurerm_container_app" "main" {
 
   registry {
     server   = azurerm_container_registry.main.login_server
-    username = azurerm_container_registry.main.admin_username
-    password = azurerm_container_registry.main.admin_password
+    identity            = "System"
+  }
+
+  identity {
+    type = "SystemAssigned"
   }
 
   template {
@@ -120,6 +123,12 @@ resource "azurerm_container_app" "main" {
       latest_revision = true
     }
   }
+}
+
+resource "azurerm_role_assignment" "acr_pull" {
+  scope                = azurerm_container_registry.main.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_container_app.main.identity[0].principal_id
 }
 
 resource "azurerm_storage_account" "tfstate" {
