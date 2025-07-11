@@ -262,7 +262,7 @@ resource "azurerm_databricks_workspace" "main" {
   name                = "${var.resource_group_name}-databricks"
   resource_group_name = azurerm_resource_group.main.name
   location            = azurerm_resource_group.main.location
-  sku                 = "standard"
+  sku                 = "premium"
 
   tags = {
     Environment = var.environment
