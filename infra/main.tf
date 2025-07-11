@@ -296,3 +296,23 @@ resource "azurerm_storage_container" "metastore" {
   storage_account_name  = "ahassstorage"
   container_access_type = "private"
 }
+
+resource "azurerm_storage_account" "datalake" {
+  name                     = "ahassdatalake"
+  resource_group_name      = azurerm_resource_group.main.name
+  location                 = azurerm_resource_group.main.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  is_hns_enabled          = true
+  account_kind            = "StorageV2"
+
+  tags = {
+    environment = var.environment
+  }
+}
+
+resource "azurerm_storage_container" "datalake_metastore" {
+  name                  = "metastore"
+  storage_account_name  = azurerm_storage_account.datalake.name
+  container_access_type = "private"
+}
