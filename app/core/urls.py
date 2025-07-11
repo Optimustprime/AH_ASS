@@ -16,6 +16,7 @@ urlpatterns = [
     path('ads/serve/<int:advertiser_id>/', views.serve_ads, name='serve-ads'),
     path('ads/track-click/', views.track_ad_click, name='track_ad_click'),
     path('update-budget/', update_budget, name='update-budget'),
+    path('advertiser/update-budget/', views.advertiser_budget_update, name='advertiser-budget-update'),
 ]
 
 from django.core.asgi import get_asgi_application

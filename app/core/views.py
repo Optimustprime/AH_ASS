@@ -201,3 +201,7 @@ def track_ad_click(request):
             content_type="application/json",
             status=500
         )
+
+def advertiser_budget_update(request):
+    """Render the advertiser budget update page."""
+    return render(request, 'advertiser_budget_update.html')
