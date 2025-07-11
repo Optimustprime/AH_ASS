@@ -3,8 +3,9 @@ from pyspark.sql.functions import col, year, month, dayofmonth, hour, current_ti
 from datetime import datetime, timedelta
 from typing import Optional
 import logging
-
-from ..config.settings import DatabaseConfig
+import sys
+sys.path.append('/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src')
+from config.settings import DatabaseConfig
 
 class SilverProcessor:
     """Processes bronze data to silver layer with data cleaning and validation."""

@@ -1,6 +1,6 @@
 # Databricks notebook source
 import sys
-sys.path.append('/Workspace/path/to/your/project/src')
+sys.path.append('/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src')
 
 from config.settings import DatabaseConfig
 from processors.silver_processor import SilverProcessor

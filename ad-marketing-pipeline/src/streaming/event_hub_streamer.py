@@ -3,15 +3,16 @@ from pyspark.sql.functions import col, from_json
 from pyspark.sql.streaming import StreamingQuery
 from typing import Dict, Any
 import logging
-
-from ..config.settings import EventHubConfig, DatabaseConfig
-from ..models.schemas import AdClickSchemas
+import sys
+sys.path.append('/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src')
+from config.settings import EventHubConfig, DatabaseConfig
+from models.schemas import AdClickSchemas
 
 
 class EventHubStreamer:
     """Handles streaming data from Event Hub to Delta tables."""
 
-    def __init__(self, spark: SparkSession, eh_config: EventHubConfig, db_config: DatabaseConfig):
+    def __init__(self, spark: SparkSession, eh_config: EventHubConfig, db_config: DatabaseConfig, dbutils, sc):
         """
         Initialize the Event Hub streamer.
 
@@ -24,16 +25,18 @@ class EventHubStreamer:
         self.eh_config = eh_config
         self.db_config = db_config
         self.logger = logging.getLogger(__name__)
+        self.dbutils = dbutils
+        self.sc = sc
 
     def _get_event_hub_config(self) -> Dict[str, Any]:
         """Get Event Hub connection configuration."""
-        connection_string = self.spark.sparkContext._jvm.org.apache.spark.sql.functions.dbutils.secrets.get(
+        connection_string = self.dbutils.secrets.get(
             scope=self.eh_config.scope,
             key=self.eh_config.connection_string_key
         )
 
         return {
-            'eventhubs.connectionString': self.spark.sparkContext._jvm.org.apache.spark.eventhubs.EventHubsUtils.encrypt(
+            'eventhubs.connectionString': self.sc._jvm.org.apache.spark.eventhubs.EventHubsUtils.encrypt(
                 connection_string),
             'eventhubs.name': self.eh_config.event_hub_name
         }

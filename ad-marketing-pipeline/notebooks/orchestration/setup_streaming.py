@@ -1,6 +1,6 @@
 # Databricks notebook source
 import sys
-sys.path.append('/Workspace/path/to/your/project/src')
+sys.path.append('/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src')
 
 from config.settings import EventHubConfig, DatabaseConfig
 from streaming.event_hub_streamer import EventHubStreamer
@@ -17,7 +17,7 @@ eh_config = EventHubConfig()
 db_config = DatabaseConfig()
 
 # Initialize streamer
-streamer = EventHubStreamer(spark, eh_config, db_config)
+streamer = EventHubStreamer(spark, eh_config, db_config, dbutils, sc)
 
 # Start streaming
 logger.info("Starting Event Hub streaming...")

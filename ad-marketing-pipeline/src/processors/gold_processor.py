@@ -3,8 +3,9 @@ from pyspark.sql.functions import col, sum, count, when, lit, max as spark_max, 
 from datetime import datetime, timedelta
 from typing import Optional
 import logging
-
-from ..config.settings import DatabaseConfig
+import sys
+sys.path.append('/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src')
+from config.settings import DatabaseConfig
 
 
 class GoldProcessor:
@@ -94,8 +95,7 @@ class GoldProcessor:
         if target_hour is None:
             target_hour = datetime.utcnow()
 
-        prev_hour = target_hour - timedelta(hours=hours_back)
-        start_ts = prev_hour.replace(minute=0, second=0, microsecond=0)
+        start_ts = target_hour.replace(minute=0, second=0, microsecond=0)
         end_ts = start_ts + timedelta(hours=1)
 
         self.logger.info(f"Processing hour: {start_ts} to {end_ts}")
