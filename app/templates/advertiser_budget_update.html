@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advertiser Budget Update</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <h1>Advertiser Budget Update</h1>
+    <form id="budget-update-form" method="POST" action="/update-budget/">
+        <label for="advertiser_id">Advertiser ID:</label>
+        <input type="text" id="advertiser_id" name="advertiser_id" required>
+
+        <label for="new_budget_value">New Budget Value:</label>
+        <input type="number" id="new_budget_value" name="new_budget_value" step="0.01" required>
+
+        <button type="submit">Update Budget</button>
+    </form>
+</body>
+</html>
