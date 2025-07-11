@@ -11,6 +11,10 @@ from django.views.decorators.http import require_http_methods
 from .azure_kafka_producer import AzureKafkaClickProducer
 import json
 from core.serializers import UserSerializer, AdvertiserSerializer
+from core.utils import create_or_update_spend_summary
+from django.utils import timezone
+import time
+
 
 class CreateUserView(generics.CreateAPIView):
     """Create a new user and associated advertiser in the system."""
@@ -84,11 +88,23 @@ async def get_valid_ads(advertiser_id: int) -> list:
 async def sse_stream(request, advertiser_id: int) -> StreamingHttpResponse:
     """Stream valid ads for an advertiser, one at a time."""
     # Get valid ads asynchronously first (like your working example)
+    advertiser = await sync_to_async(Advertiser.objects.get)(advertiser_id=advertiser_id)
+    spend_summary = await sync_to_async(
+        lambda: SpendSummary.objects.filter(advertiser=advertiser).order_by('-window_end').first()
+    )()
+
+    if not spend_summary or not spend_summary.can_serve:
+        def empty_stream():
+            yield f'data: {json.dumps({"message": "Cannot serve ads due to budget constraints"})}\n\n'
+        response = StreamingHttpResponse(empty_stream(), content_type='text/event-stream')
+        response['Cache-Control'] = 'no-cache'
+        response['Connection'] = 'close'
+        return response
+
     valid_ads = await get_valid_ads(advertiser_id)
 
     def event_stream():  # Remove async here
         """Generate server-sent events, sending one ad at a time."""
-        import time  # Use synchronous sleep
 
         try:
             while True:
@@ -144,14 +160,18 @@ def track_ad_click(request):
         # Retrieve the latest budget value for the advertiser
         latest_budget = BudgetEvent.objects.filter(advertiser=advertiser).order_by('-event_time').first()
         latest_budget_value = latest_budget.new_budget_value if latest_budget else 0.0
-
+        click_time = timezone.now()
 
         ad = Ad.objects.get(ad_id=ad_id)
         ClickEvent.objects.create(
             advertiser=advertiser,
             ad=ad,
-            amount=random_amount
+            amount=random_amount,
+            click_time=click_time
         )
+
+        # Create or update SpendSummary after click event
+        create_or_update_spend_summary(advertiser_id, click_time)
 
         producer = AzureKafkaClickProducer()
         success = producer.send_click_event(
