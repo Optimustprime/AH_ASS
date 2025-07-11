@@ -289,10 +289,10 @@ resource "azurerm_eventhub_authorization_rule" "listen_policy" {
   listen = true
 }
 
-resource "azurerm_databricks_access_connector" "storage_connector" {
-  name                = "databricks-access-connector"
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
-  databricks_workspace_id = azurerm_databricks_workspace.main.id
-  storage_account_id      = azurerm_storage_account.tfstate.id
+
+
+resource "azurerm_storage_container" "metastore" {
+  name                  = "metastore"
+  storage_account_name  = "ahassstorage"
+  container_access_type = "private"
 }
