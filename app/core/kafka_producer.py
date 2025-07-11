@@ -15,12 +15,12 @@ class KafkaClickProducer:
             retry_backoff_ms=100
         )
 
-    def send_click_event(self, advertiser_id: int, ad_id: str, amount: float = 1.20):
+    def send_click_event(self, advertiser: int, ad_id: str, amount: float = 1.20):
         """Send ad click event to Kafka."""
         click_event = {
             "event_type": "ad_click",
             "click_id": f"c{uuid.uuid4().hex[:6]}",
-            "advertiser_id": str(advertiser_id),
+            "advertiser": str(advertiser),
             "ad_id": ad_id,
             "amount": amount,
             "timestamp": datetime.utcnow().isoformat(),

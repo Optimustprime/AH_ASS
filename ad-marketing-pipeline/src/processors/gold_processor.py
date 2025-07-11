@@ -55,7 +55,7 @@ class GoldProcessor:
         Returns:
             Aggregated DataFrame with spend metrics
         """
-        gold_df = df.groupBy("advertiser_id").agg(
+        gold_df = df.groupBy("advertiser").agg(
             sum("amount").alias("gross_spend"),
             sum(when(col("is_valid") == True, col("amount")).otherwise(0)).alias("net_spend"),
             count("*").alias("record_count"),

@@ -104,7 +104,7 @@ Input Data Schema
 {
   "event_type": "ad_click",
   "click_id": "unique-click-id",
-  "advertiser_id": "advertiser-123",
+  "advertiser": "advertiser-123",
   "ad_id": "ad-456",
   "amount": 0.50,
   "budget_value": 1000.0,

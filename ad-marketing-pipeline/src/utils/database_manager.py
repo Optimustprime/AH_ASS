@@ -45,7 +45,7 @@ class DatabaseManager:
         CREATE TABLE IF NOT EXISTS {self.db_config.bronze_table} (
             event_type STRING,
             click_id STRING,
-            advertiser_id STRING,
+            advertiser STRING,
             ad_id STRING,
             amount FLOAT,
             budget_value FLOAT,
@@ -62,7 +62,7 @@ class DatabaseManager:
         CREATE TABLE IF NOT EXISTS {self.db_config.silver_table} (
             event_type STRING,
             click_id STRING,
-            advertiser_id STRING,
+            advertiser STRING,
             ad_id STRING,
             amount FLOAT,
             budget_value FLOAT,
@@ -84,7 +84,7 @@ class DatabaseManager:
         """Create gold table for aggregated advertiser spend."""
         sql = f"""
         CREATE TABLE IF NOT EXISTS {self.db_config.gold_table} (
-            advertiser_id STRING,
+            advertiser STRING,
             gross_spend DOUBLE,
             net_spend DOUBLE,
             record_count BIGINT,

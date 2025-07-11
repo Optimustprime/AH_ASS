@@ -2,7 +2,6 @@ from django.urls import path
 from core import views
 from core.utils import update_budget
 
-# app_name = 'core'
 
 urlpatterns = [
     path('users/create/', views.CreateUserView.as_view(), name='create-user'),

@@ -58,7 +58,7 @@ class SilverProcessor:
         silver_df = df \
             .filter(col("event_type") == "ad_click") \
             .filter(col("amount").isNotNull() & (col("amount") > 0)) \
-            .filter(col("advertiser_id").isNotNull()) \
+            .filter(col("advertiser").isNotNull()) \
             .withColumn("is_valid", col("amount") > 0) \
             .withColumn("processed_at", current_timestamp()) \
             .withColumn("ingest_year", year(col("timestamp"))) \
