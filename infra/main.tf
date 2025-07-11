@@ -289,15 +289,10 @@ resource "azurerm_eventhub_authorization_rule" "listen_policy" {
   listen = true
 }
 
-
-resource "databricks_unity_catalog_metastore" "uc_metastore" {
-  name         = "ahass-assignment-metastore"
-  storage_root = "abfss://uc-root@ahassstorage.dfs.core.windows.net/"
-  region       = var.location
-}
-
-resource "databricks_unity_catalog_metastore_assignment" "uc_assignment" {
-  metastore_id        = databricks_unity_catalog_metastore.uc_metastore.id
-  workspace_id        = azurerm_databricks_workspace.main.id
-  default_catalog_name = "main"
+resource "azurerm_databricks_access_connector" "storage_connector" {
+  name                = "databricks-access-connector"
+  resource_group_name = azurerm_resource_group.main.name
+  location            = azurerm_resource_group.main.location
+  databricks_workspace_id = azurerm_databricks_workspace.main.id
+  storage_account_id      = azurerm_storage_account.tfstate.id
 }
