@@ -10,10 +10,13 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .azure_kafka_producer import AzureKafkaClickProducer
 import json
-from core.serializers import UserSerializer, AdvertiserSerializer
-from core.utils import create_or_update_spend_summary
+from .serializers import UserSerializer, AdvertiserSerializer
+from .utils import create_or_update_spend_summary, BudgetManager
 from django.utils import timezone
 import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CreateUserView(generics.CreateAPIView):
@@ -46,6 +49,7 @@ class CreateUserView(generics.CreateAPIView):
             headers=headers
         )
 
+
 class ManageUserView(viewsets.ViewSetMixin, generics.RetrieveUpdateAPIView):
     """Manage the authenticated user and edit data."""
     serializer_class = UserSerializer
@@ -57,82 +61,95 @@ class ManageUserView(viewsets.ViewSetMixin, generics.RetrieveUpdateAPIView):
 
 async def get_valid_ads(advertiser_id: int) -> list:
     """Get valid ads for an advertiser based on budget and spend."""
-    advertiser = await sync_to_async(Advertiser.objects.get)(advertiser_id=advertiser_id)
+    try:
+        advertiser = await sync_to_async(Advertiser.objects.get)(advertiser_id=advertiser_id)
 
-    budget_query = BudgetEvent.objects.filter(advertiser=advertiser).order_by('-event_time')
+        # Use BudgetManager to get latest budget
+        latest_budget = await sync_to_async(BudgetManager.get_latest_budget)(advertiser)
 
-    # Execute query and print all results
+        # Get current spend summary
+        current_spend = await sync_to_async(
+            lambda: SpendSummary.objects.filter(advertiser=advertiser).order_by('-window_end').first()
+        )()
 
-    latest_budget = await sync_to_async(
-        lambda: budget_query.first()
-    )()
+        if not latest_budget or not current_spend or not current_spend.can_serve:
+            logger.info(f"Cannot serve ads for advertiser {advertiser_id}: budget={bool(latest_budget)}, spend={bool(current_spend)}, can_serve={current_spend.can_serve if current_spend else False}")
+            return []
 
-    # Get current spend
-    current_spend = await sync_to_async(
-        lambda: SpendSummary.objects.filter(advertiser=advertiser).order_by('-window_end').first()
-    )()
+        # Get valid ads
+        ads = await sync_to_async(
+            lambda: list(Ad.objects.filter(
+                advertiser=advertiser,
+                is_active=True
+            ).values('ad_id', 'ad_title', 'ad_format', 'product_link'))
+        )()
 
-    if not latest_budget or not current_spend or not current_spend.can_serve:
+        return ads
+
+    except Advertiser.DoesNotExist:
+        logger.error(f"Advertiser {advertiser_id} not found")
+        return []
+    except Exception as e:
+        logger.error(f"Error getting valid ads for advertiser {advertiser_id}: {e}")
         return []
 
-    # Get valid ads
-    ads = await sync_to_async(
-        lambda: list(Ad.objects.filter(
-            advertiser=advertiser,
-            is_active=True
-        ).values('ad_id', 'ad_title', 'ad_format', 'product_link'))
-    )()
-
-    return ads
 
 async def sse_stream(request, advertiser_id: int) -> StreamingHttpResponse:
     """Stream valid ads for an advertiser, one at a time."""
-    # Get valid ads asynchronously first (like your working example)
-    advertiser = await sync_to_async(Advertiser.objects.get)(advertiser_id=advertiser_id)
-    spend_summary = await sync_to_async(
-        lambda: SpendSummary.objects.filter(advertiser=advertiser).order_by('-window_end').first()
-    )()
+    try:
+        # Get valid ads asynchronously
+        advertiser = await sync_to_async(Advertiser.objects.get)(advertiser_id=advertiser_id)
+        spend_summary = await sync_to_async(
+            lambda: SpendSummary.objects.filter(advertiser=advertiser).order_by('-window_end').first()
+        )()
 
-    if not spend_summary or not spend_summary.can_serve:
-        def empty_stream():
-            yield f'data: {json.dumps({"message": "Cannot serve ads due to budget constraints"})}\n\n'
-        response = StreamingHttpResponse(empty_stream(), content_type='text/event-stream')
+        if not spend_summary or not spend_summary.can_serve:
+            def empty_stream():
+                yield f'data: {json.dumps({"message": "Cannot serve ads due to budget constraints"})}\n\n'
+
+            response = StreamingHttpResponse(empty_stream(), content_type='text/event-stream')
+            response['Cache-Control'] = 'no-cache'
+            response['Connection'] = 'close'
+            return response
+
+        valid_ads = await get_valid_ads(advertiser_id)
+
+        def event_stream():
+            """Generate server-sent events, sending one ad at a time."""
+            try:
+                while True:
+                    if valid_ads:
+                        for ad in valid_ads:
+                            yield f'data: {json.dumps(ad)}\n\n'
+                            time.sleep(5)
+                        time.sleep(10)
+                    else:
+                        yield f'data: {json.dumps({"message": "No valid ads available"})}\n\n'
+                        time.sleep(10)
+
+            except Exception as e:
+                logger.error(f"Stream error: {e}")
+                yield f'data: {json.dumps({"message": "Error in stream"})}\n\n'
+
+        response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
         response['Cache-Control'] = 'no-cache'
         response['Connection'] = 'close'
         return response
 
-    valid_ads = await get_valid_ads(advertiser_id)
+    except Advertiser.DoesNotExist:
+        logger.error(f"Advertiser {advertiser_id} not found")
+        def error_stream():
+            yield f'data: {json.dumps({"message": "Advertiser not found"})}\n\n'
 
-    def event_stream():  # Remove async here
-        """Generate server-sent events, sending one ad at a time."""
-
-        try:
-            while True:
-                if valid_ads:
-                    for ad in valid_ads:
-                        current_ad = ad
-                        yield f'data: {json.dumps(current_ad)}\n\n'
-                        time.sleep(5)  # Synchronous sleep instead of await asyncio.sleep(5)
-
-                    time.sleep(10)  # Synchronous sleep instead of await asyncio.sleep(10)
-
-        except Exception as e:
-            print(f"Stream error: {e}")
-            yield f'data: {json.dumps({"message": "Error in stream"})}\n\n'
-        finally:
-            return
-
-    response = StreamingHttpResponse(event_stream(), content_type='text/event-stream')
-    response['Cache-Control'] = 'no-cache'
-    response['Connection'] = 'close'
-    return response
-
+        response = StreamingHttpResponse(error_stream(), content_type='text/event-stream')
+        response['Cache-Control'] = 'no-cache'
+        response['Connection'] = 'close'
+        return response
 
 
 def serve_ads(request, advertiser_id):
     """Render the ad serving page."""
     return render(request, 'ads.html', {'advertiser_id': advertiser_id})
-
 
 
 @csrf_exempt
@@ -144,26 +161,44 @@ def track_ad_click(request):
         advertiser_id = data.get('advertiser_id')
         ad_id = data.get('ad_id')
 
+        # Input validation
         if not advertiser_id or not ad_id:
             return HttpResponse(
                 json.dumps({"error": "Missing advertiser_id or ad_id"}),
                 content_type="application/json",
                 status=400
             )
+
+        # Validate advertiser exists
+        try:
+            advertiser = Advertiser.objects.get(advertiser_id=advertiser_id)
+        except Advertiser.DoesNotExist:
+            return HttpResponse(
+                json.dumps({"error": "Advertiser not found"}),
+                content_type="application/json",
+                status=404
+            )
+
+        # Validate ad exists
+        try:
+            ad = Ad.objects.get(ad_id=ad_id)
+        except Ad.DoesNotExist:
+            return HttpResponse(
+                json.dumps({"error": "Ad not found"}),
+                content_type="application/json",
+                status=404
+            )
+
         # Assign a random amount
         random_amount = choice([1.0, 1.1, 1.2, 1.3, 1.4])
-
-
-        # Create a ClickEvent instance
-        advertiser = Advertiser.objects.get(advertiser_id=advertiser_id)
-
-        # Retrieve the latest budget value for the advertiser
-        latest_budget = BudgetEvent.objects.filter(advertiser=advertiser).order_by('-event_time').first()
-        latest_budget_value = latest_budget.new_budget_value if latest_budget else 0.0
         click_time = timezone.now()
 
-        ad = Ad.objects.get(ad_id=ad_id)
-        ClickEvent.objects.create(
+        # Get latest budget using BudgetManager
+        latest_budget = BudgetManager.get_latest_budget(advertiser)
+        latest_budget_value = latest_budget.new_budget_value if latest_budget else 0.0
+
+        # Create click event
+        click_event = ClickEvent.objects.create(
             advertiser=advertiser,
             ad=ad,
             amount=random_amount,
@@ -171,8 +206,9 @@ def track_ad_click(request):
         )
 
         # Create or update SpendSummary after click event
-        create_or_update_spend_summary(advertiser_id, click_time)
+        spend_summary = create_or_update_spend_summary(advertiser_id, click_time)
 
+        # Send to Kafka
         producer = AzureKafkaClickProducer()
         success = producer.send_click_event(
             advertiser=advertiser.name,
@@ -184,24 +220,37 @@ def track_ad_click(request):
         producer.close()
 
         if success:
+            logger.info(f"Click event tracked successfully for advertiser {advertiser_id}, ad {ad_id}")
             return HttpResponse(
-                json.dumps({"status": "success"}),
+                json.dumps({
+                    "status": "success",
+                    "click_id": click_event.click_id if hasattr(click_event, 'click_id') else None,
+                    "can_serve": spend_summary.can_serve if spend_summary else True
+                }),
                 content_type="application/json"
             )
         else:
+            logger.error(f"Failed to send click event to Kafka for advertiser {advertiser_id}")
             return HttpResponse(
-                json.dumps({"error": "Failed to send event"}),
+                json.dumps({"error": "Failed to send event to Kafka"}),
                 content_type="application/json",
                 status=500
             )
 
+    except json.JSONDecodeError:
+        return HttpResponse(
+            json.dumps({"error": "Invalid JSON data"}),
+            content_type="application/json",
+            status=400
+        )
     except Exception as e:
-        print(f"Error tracking click: {e}")
+        logger.error(f"Error tracking click: {e}")
         return HttpResponse(
             json.dumps({"error": "Internal server error"}),
             content_type="application/json",
             status=500
         )
+
 
 def advertiser_budget_update(request):
     """Render the advertiser budget update page."""
