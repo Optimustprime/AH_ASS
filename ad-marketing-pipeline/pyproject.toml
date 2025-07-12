@@ -3,7 +3,7 @@
 name = "ad-marketing-pipeline"
 version = "0.1.0"
 description = "Ad marketing data pipeline for real-time budget management"
-authors = ["{name = 'oladayo',email = 'ajadimarvellousgo@gmail.com'}"]
+authors = ["Oladayo <ajadimarvellousgo@gmail.com>"]
 readme = "README.md"
 packages = [{include = "src"}]
 
