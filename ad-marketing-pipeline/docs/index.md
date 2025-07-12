@@ -22,3 +22,7 @@ For detailed API documentation, see:
 
 ![Schema](assets/schema.png)
 
+## Backend Schema Diagram
+
+![Schema](assets/backendschema.png)
+
