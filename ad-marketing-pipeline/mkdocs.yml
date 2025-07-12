@@ -1,0 +1,89 @@
+site_name: Ad Marketing Pipeline
+site_description: Real-time data pipeline for ad marketing budget management
+site_author: Oladayo
+repo_url: https://github.com/Optimustprime/AH_ASS.git
+repo_name: Optimustprime/AH_ASS
+
+theme:
+  name: material
+  palette:
+    scheme: default
+    primary: indigo
+    accent: indigo
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.tracking
+    - navigation.top
+    - search.highlight
+    - search.suggest
+    - content.code.annotate
+    - content.code.copy
+    - toc.integrate
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [ad-marketing-pipeline/src]
+          options:
+            docstring_style: google
+  - git-revision-date-localized:
+      enable_creation_date: true
+  - mermaid2
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - admonition
+  - footnotes
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - def_list
+  - meta
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Getting Started: getting-started.md
+  - Data Flow:
+      - Overview: data-flow/index.md
+      - Bronze Layer: data-flow/bronze.md
+      - Silver Layer: data-flow/silver.md
+      - Gold Layer: data-flow/gold.md
+  - API Reference:
+      - Overview: api-reference/index.md
+      - Processors: api-reference/processors.md
+      - Streaming: api-reference/streaming.md
+      - Configuration: api-reference/config.md
+  - Implementation:
+      - Data Sources: implementation/data-sources.md
+      - Stream Processing: implementation/stream-processing.md
+      - Analytics: implementation/analytics.md
+      - Monitoring: implementation/monitoring.md
+  - Development:
+      - Contributing: development/contributing.md
+      - Testing: development/testing.md
+      - CI/CD: development/ci-cd.md
+      - Code Style: development/code-style.md
+  - Operations:
+      - Deployment: operations/deployment.md
+      - Scaling: operations/scaling.md
+      - Monitoring: operations/monitoring.md
+      - Troubleshooting: operations/troubleshooting.md

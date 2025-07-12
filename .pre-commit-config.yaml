@@ -1,0 +1,20 @@
+repos:
+  - repo: local
+    hooks:
+    - id: ruff-format
+      name: Ruff format
+      entry: ruff format --check --diff .
+      language: python
+      types: [python]
+      files: \.py$
+      additional_dependencies:
+        - ruff
+
+
+    - id: ruff
+      name: Ruff Import Checks
+      entry: ruff check
+      args: [chck, --select, F401]
+      language: python
+      types: [python]
+      files: \.py$

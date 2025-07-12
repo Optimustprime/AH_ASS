@@ -72,7 +72,6 @@ ad-marketing-pipeline/
 
 ### Installation
 
-```bash
 # Clone the repository
 git clone https://github.com/your-org/ad-marketing-pipeline.git
 cd ad-marketing-pipeline
@@ -110,3 +109,53 @@ Input Data Schema
   "budget_value": 1000.0,
   "timestamp": "2024-01-01T12:00:00Z"
 }
+
+## Schema Diagram
+
+```mermaid
+classDiagram
+    class BronzeSchema {
+        +StringType event_type
+        +StringType click_id
+        +StringType advertiser
+        +StringType advertiser_id
+        +StringType ad_id
+        +FloatType amount
+        +FloatType budget_value
+        +TimestampType timestamp
+    }
+    
+    class SilverSchema {
+        +StringType event_type
+        +StringType click_id
+        +StringType advertiser
+        +StringType advertiser_id
+        +StringType ad_id
+        +FloatType amount
+        +FloatType budget_value
+        +TimestampType timestamp
+        +BooleanType is_valid
+        +TimestampType processed_at
+        +IntegerType ingest_year
+        +IntegerType ingest_month
+        +IntegerType ingest_day
+        +IntegerType ingest_hour
+    }
+    
+    class GoldSchema {
+        +StringType advertiser
+        +StringType advertiser_id
+        +DoubleType gross_spend
+        +DoubleType net_spend
+        +LongType record_count
+        +FloatType budget_value
+        +BooleanType can_serve
+        +TimestampType window_start
+        +TimestampType window_end
+        +TimestampType spend_hour
+        +TimestampType spend_day
+        +TimestampType spend_month
+    }
+    
+    BronzeSchema --> SilverSchema: Cleaned & Validated
+    SilverSchema --> GoldSchema: Aggregated by Advertiser
