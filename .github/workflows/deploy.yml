@@ -29,6 +29,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          cd ad-marketing-pipeline
           poetry install --no-interaction
 
       - name: Install Java for Spark
@@ -40,6 +41,7 @@ jobs:
       - name: Configure Spark environment
         run: |
           # Set up Hadoop winutils alternative for Linux
+          cd ad-marketing-pipeline
           mkdir -p hadoop/bin
           echo '#!/bin/bash' > hadoop/bin/winutils
           chmod +x hadoop/bin/winutils
@@ -54,6 +56,7 @@ jobs:
           PYSPARK_SUBMIT_ARGS: "--conf spark.driver.memory=2g pyspark-shell"
 
   deploy:
+    needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
