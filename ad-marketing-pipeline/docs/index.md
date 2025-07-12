@@ -26,3 +26,11 @@ For detailed API documentation, see:
 
 ![Schema](assets/backendschema.png)
 
+## Dashboards
+![Dashboards](assets/dashboard1.png)
+![Dashboards](assets/dashboard2.png)
+![Dashboards](assets/dashboard3.png)
+![Dashboards](assets/dashboard4.png)
+![Dashboards](assets/dashboard5.png)
+
+
