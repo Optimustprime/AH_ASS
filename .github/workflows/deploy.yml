@@ -59,7 +59,8 @@ jobs:
   mkdocs:
     needs: test
     runs-on: ubuntu-latest
-    id-token: write
+    permissions:
+      id-token: write
       contents: write
     steps:
       - uses: actions/checkout@v3
