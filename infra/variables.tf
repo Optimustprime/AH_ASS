@@ -69,4 +69,3 @@ variable "event_hub_connection_string" {
   description = "Connection string for the Azure Event Hub"
   sensitive   = true
 }
-

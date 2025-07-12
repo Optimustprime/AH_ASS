@@ -1,18 +1,17 @@
 # Databricks notebook source
 import sys
-sys.path.append('/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src')
+
+sys.path.append("/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src")
 
 from config.settings import DatabaseConfig
 from processors.gold_processor import GoldProcessor
-from datetime import datetime
 import logging
 
 # COMMAND ----------
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s | %(levelname)s | %(message)s'
+    level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s"
 )
 logger = logging.getLogger(__name__)
 

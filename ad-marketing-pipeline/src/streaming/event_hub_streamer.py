@@ -4,15 +4,26 @@ from pyspark.sql.streaming import StreamingQuery
 from typing import Dict, Any
 import logging
 import sys
-sys.path.append('/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src')
-from config.settings import EventHubConfig, DatabaseConfig
-from models.schemas import AdClickSchemas
+
+sys.path.append("/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline")
+from src.config.settings import EventHubConfig, DatabaseConfig
+from src.models.schemas import AdClickSchemas
+
+
+# from src.models.schemas import AdClickSchemas
 
 
 class EventHubStreamer:
     """Handles streaming data from Event Hub to Delta tables."""
 
-    def __init__(self, spark: SparkSession, eh_config: EventHubConfig, db_config: DatabaseConfig, dbutils, sc):
+    def __init__(
+        self,
+        spark: SparkSession,
+        eh_config: EventHubConfig,
+        db_config: DatabaseConfig,
+        dbutils,
+        sc,
+    ):
         """
         Initialize the Event Hub streamer.
 
@@ -31,14 +42,14 @@ class EventHubStreamer:
     def _get_event_hub_config(self) -> Dict[str, Any]:
         """Get Event Hub connection configuration."""
         connection_string = self.dbutils.secrets.get(
-            scope=self.eh_config.scope,
-            key=self.eh_config.connection_string_key
+            scope=self.eh_config.scope, key=self.eh_config.connection_string_key
         )
 
         return {
-            'eventhubs.connectionString': self.sc._jvm.org.apache.spark.eventhubs.EventHubsUtils.encrypt(
-                connection_string),
-            'eventhubs.name': self.eh_config.event_hub_name
+            "eventhubs.connectionString": self.sc._jvm.org.apache.spark.eventhubs.EventHubsUtils.encrypt(
+                connection_string
+            ),
+            "eventhubs.name": self.eh_config.event_hub_name,
         }
 
     def create_streaming_dataframe(self) -> DataFrame:
@@ -51,16 +62,15 @@ class EventHubStreamer:
         eh_conf = self._get_event_hub_config()
 
         # Read from Event Hub
-        raw_df = self.spark.readStream \
-            .format("eventhubs") \
-            .options(**eh_conf) \
-            .load()
+        raw_df = self.spark.readStream.format("eventhubs").options(**eh_conf).load()
 
         # Parse JSON data
         schema = AdClickSchemas.bronze_schema()
-        parsed_df = raw_df.selectExpr("CAST(body AS STRING) as json") \
-            .select(from_json(col("json"), schema).alias("data")) \
+        parsed_df = (
+            raw_df.selectExpr("CAST(body AS STRING) as json")
+            .select(from_json(col("json"), schema).alias("data"))
             .select("data.*")
+        )
 
         return parsed_df
 
@@ -73,11 +83,12 @@ class EventHubStreamer:
         """
         streaming_df = self.create_streaming_dataframe()
 
-        query = streaming_df.writeStream \
-            .format("delta") \
-            .outputMode("append") \
-            .option("checkpointLocation", self.eh_config.checkpoint_location) \
+        query = (
+            streaming_df.writeStream.format("delta")
+            .outputMode("append")
+            .option("checkpointLocation", self.eh_config.checkpoint_location)
             .table(self.db_config.bronze_table)
+        )
 
         self.logger.info(f"Started streaming to {self.db_config.bronze_table}")
         return query

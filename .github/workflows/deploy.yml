@@ -9,6 +9,50 @@ permissions:
   contents: read
 
 jobs:
+
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.5.1
+          virtualenvs-create: true
+
+      - name: Install dependencies
+        run: |
+          poetry install --no-interaction
+
+      - name: Install Java for Spark
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+
+      - name: Configure Spark environment
+        run: |
+          # Set up Hadoop winutils alternative for Linux
+          mkdir -p hadoop/bin
+          echo '#!/bin/bash' > hadoop/bin/winutils
+          chmod +x hadoop/bin/winutils
+          export HADOOP_HOME=$(pwd)/hadoop
+
+      - name: Run tests
+        run: |
+          cd ad-marketing-pipeline
+          poetry run pytest tests/ -v
+        env:
+          HADOOP_HOME: ${{ github.workspace }}/hadoop
+          PYSPARK_SUBMIT_ARGS: "--conf spark.driver.memory=2g pyspark-shell"
+
   deploy:
     runs-on: ubuntu-latest
     steps:

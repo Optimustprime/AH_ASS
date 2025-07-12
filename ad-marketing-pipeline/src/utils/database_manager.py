@@ -1,8 +1,8 @@
 from pyspark.sql import SparkSession
-from typing import Dict, List
 import logging
 
 from ..config.settings import DatabaseConfig
+
 
 class DatabaseManager:
     """Manages database operations and table provisioning."""
@@ -26,7 +26,7 @@ class DatabaseManager:
             f"USE CATALOG {self.db_config.catalog}",
             f"CREATE SCHEMA IF NOT EXISTS {self.db_config.bronze_schema}",
             f"CREATE SCHEMA IF NOT EXISTS {self.db_config.silver_schema}",
-            f"CREATE SCHEMA IF NOT EXISTS {self.db_config.gold_schema}"
+            f"CREATE SCHEMA IF NOT EXISTS {self.db_config.gold_schema}",
         ]
 
         for cmd in commands:

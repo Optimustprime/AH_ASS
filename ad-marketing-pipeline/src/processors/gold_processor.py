@@ -1,12 +1,20 @@
 from pyspark.sql import SparkSession, DataFrame
-from pyspark.sql.functions import col, sum, count, when, lit, max as spark_max, date_trunc
+from pyspark.sql.functions import (
+    col,
+    sum,
+    count,
+    when,
+    lit,
+    max as spark_max,
+    date_trunc,
+)
 from datetime import datetime, timedelta
 from typing import Optional
 import logging
 import sys
 
-sys.path.append('/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src')
-from config.settings import DatabaseConfig
+sys.path.append("/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline")
+from src.config.settings import DatabaseConfig
 
 
 class GoldProcessor:
@@ -38,13 +46,14 @@ class GoldProcessor:
         silver_df = self.spark.read.table(self.db_config.silver_table)
 
         filtered_df = silver_df.filter(
-            (col("timestamp") >= start_ts) &
-            (col("timestamp") < end_ts)
+            (col("timestamp") >= start_ts) & (col("timestamp") < end_ts)
         )
 
         return filtered_df
 
-    def aggregate_spend_data(self, df: DataFrame, start_ts: datetime, end_ts: datetime) -> DataFrame:
+    def aggregate_spend_data(
+        self, df: DataFrame, start_ts: datetime, end_ts: datetime
+    ) -> DataFrame:
         """
         Aggregate spend data by advertiser.
 
@@ -56,17 +65,23 @@ class GoldProcessor:
         Returns:
             Aggregated DataFrame with spend metrics
         """
-        gold_df = df.groupBy("advertiser", "advertiser_id").agg(
-            sum("amount").alias("gross_spend"),
-            sum(when(col("is_valid") == True, col("amount")).otherwise(0)).alias("net_spend"),
-            count("*").alias("record_count"),
-            spark_max("budget_value").alias("budget_value")
-        ).withColumn("window_start", lit(start_ts)) \
-            .withColumn("window_end", lit(end_ts)) \
-            .withColumn("can_serve", col("net_spend") < col("budget_value")) \
-            .withColumn("spend_hour", date_trunc("HOUR", lit(start_ts))) \
-            .withColumn("spend_day", date_trunc("DAY", lit(start_ts))) \
+        gold_df = (
+            df.groupBy("advertiser", "advertiser_id")
+            .agg(
+                sum("amount").alias("gross_spend"),
+                sum(when(col("is_valid") == True, col("amount")).otherwise(0)).alias(
+                    "net_spend"
+                ),
+                count("*").alias("record_count"),
+                spark_max("budget_value").alias("budget_value"),
+            )
+            .withColumn("window_start", lit(start_ts))
+            .withColumn("window_end", lit(end_ts))
+            .withColumn("can_serve", col("net_spend") < col("budget_value"))
+            .withColumn("spend_hour", date_trunc("HOUR", lit(start_ts)))
+            .withColumn("spend_day", date_trunc("DAY", lit(start_ts)))
             .withColumn("spend_month", date_trunc("MONTH", lit(start_ts)))
+        )
 
         return gold_df
 
@@ -77,15 +92,15 @@ class GoldProcessor:
         Args:
             df: Aggregated DataFrame to write
         """
-        df.write \
-            .format("delta") \
-            .mode("append") \
-            .partitionBy("spend_day") \
-            .saveAsTable(self.db_config.gold_table)
+        df.write.format("delta").mode("append").partitionBy("spend_day").saveAsTable(
+            self.db_config.gold_table
+        )
 
         self.logger.info(f"Data written to {self.db_config.gold_table}")
 
-    def process_hour(self, target_hour: Optional[datetime] = None, hours_back: int = 4) -> None:
+    def process_hour(
+        self, target_hour: Optional[datetime] = None, hours_back: int = 4
+    ) -> None:
         """
         Process a specific hour of data from silver to gold.
 

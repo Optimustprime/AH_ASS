@@ -4,8 +4,10 @@ from datetime import datetime, timedelta
 from typing import Optional
 import logging
 import sys
-sys.path.append('/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src')
-from config.settings import DatabaseConfig
+
+sys.path.append("/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline")
+from src.config.settings import DatabaseConfig
+
 
 class SilverProcessor:
     """Processes bronze data to silver layer with data cleaning and validation."""
@@ -36,8 +38,7 @@ class SilverProcessor:
         bronze_df = self.spark.read.table(self.db_config.bronze_table)
 
         filtered_df = bronze_df.filter(
-            (col("timestamp") >= start_ts) &
-            (col("timestamp") < end_ts)
+            (col("timestamp") >= start_ts) & (col("timestamp") < end_ts)
         )
 
         record_count = filtered_df.count()
@@ -55,17 +56,18 @@ class SilverProcessor:
         Returns:
             Cleaned DataFrame ready for silver layer
         """
-        silver_df = df \
-            .filter(col("event_type") == "ad_click") \
-            .filter(col("amount").isNotNull() & (col("amount") > 0)) \
-            .filter(col("advertiser").isNotNull()) \
-            .filter(col("advertiser_id").isNotNull()) \
-            .withColumn("is_valid", col("amount") > 0) \
-            .withColumn("processed_at", current_timestamp()) \
-            .withColumn("ingest_year", year(col("timestamp"))) \
-            .withColumn("ingest_month", month(col("timestamp"))) \
-            .withColumn("ingest_day", dayofmonth(col("timestamp"))) \
+        silver_df = (
+            df.filter(col("event_type") == "ad_click")
+            .filter(col("amount").isNotNull() & (col("amount") > 0))
+            .filter(col("advertiser").isNotNull())
+            .filter(col("advertiser_id").isNotNull())
+            .withColumn("is_valid", col("amount") > 0)
+            .withColumn("processed_at", current_timestamp())
+            .withColumn("ingest_year", year(col("timestamp")))
+            .withColumn("ingest_month", month(col("timestamp")))
+            .withColumn("ingest_day", dayofmonth(col("timestamp")))
             .withColumn("ingest_hour", hour(col("timestamp")))
+        )
 
         return silver_df
 
@@ -76,11 +78,9 @@ class SilverProcessor:
         Args:
             df: Cleaned DataFrame to write
         """
-        df.write \
-            .format("delta") \
-            .mode("append") \
-            .partitionBy("ingest_year", "ingest_month", "ingest_day") \
-            .saveAsTable(self.db_config.silver_table)
+        df.write.format("delta").mode("append").partitionBy(
+            "ingest_year", "ingest_month", "ingest_day"
+        ).saveAsTable(self.db_config.silver_table)
 
         self.logger.info(f"Data written to {self.db_config.silver_table}")
 
