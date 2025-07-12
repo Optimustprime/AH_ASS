@@ -46,6 +46,7 @@ class DatabaseManager:
             event_type STRING,
             click_id STRING,
             advertiser STRING,
+            advertiser_id STRING,
             ad_id STRING,
             amount FLOAT,
             budget_value FLOAT,
@@ -63,6 +64,7 @@ class DatabaseManager:
             event_type STRING,
             click_id STRING,
             advertiser STRING,
+            advertiser_id STRING,
             ad_id STRING,
             amount FLOAT,
             budget_value FLOAT,
@@ -85,6 +87,7 @@ class DatabaseManager:
         sql = f"""
         CREATE TABLE IF NOT EXISTS {self.db_config.gold_table} (
             advertiser STRING,
+            advertiser_id STRING,
             gross_spend DOUBLE,
             net_spend DOUBLE,
             record_count BIGINT,

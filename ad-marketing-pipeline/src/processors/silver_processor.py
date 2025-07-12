@@ -59,6 +59,7 @@ class SilverProcessor:
             .filter(col("event_type") == "ad_click") \
             .filter(col("amount").isNotNull() & (col("amount") > 0)) \
             .filter(col("advertiser").isNotNull()) \
+            .filter(col("advertiser_id").isNotNull()) \
             .withColumn("is_valid", col("amount") > 0) \
             .withColumn("processed_at", current_timestamp()) \
             .withColumn("ingest_year", year(col("timestamp"))) \

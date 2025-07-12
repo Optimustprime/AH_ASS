@@ -176,6 +176,7 @@ def track_ad_click(request):
         producer = AzureKafkaClickProducer()
         success = producer.send_click_event(
             advertiser=advertiser.name,
+            advertiser_id=advertiser_id,
             ad_id=ad_id,
             amount=random_amount,
             budget_value=latest_budget_value

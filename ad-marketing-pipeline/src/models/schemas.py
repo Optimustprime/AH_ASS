@@ -11,6 +11,7 @@ class AdClickSchemas:
             .add("event_type", StringType()) \
             .add("click_id", StringType()) \
             .add("advertiser", StringType()) \
+            .add("advertiser_id", StringType()) \
             .add("ad_id", StringType()) \
             .add("amount", FloatType()) \
             .add("budget_value", FloatType()) \
@@ -23,6 +24,7 @@ class AdClickSchemas:
             .add("event_type", StringType()) \
             .add("click_id", StringType()) \
             .add("advertiser", StringType()) \
+            .add("advertiser_id", StringType()) \
             .add("ad_id", StringType()) \
             .add("amount", FloatType()) \
             .add("budget_value", FloatType()) \
@@ -39,6 +41,7 @@ class AdClickSchemas:
         """Schema for gold layer aggregated advertiser spend."""
         return StructType() \
             .add("advertiser", StringType()) \
+            .add("advertiser_id", StringType()) \
             .add("gross_spend", DoubleType()) \
             .add("net_spend", DoubleType()) \
             .add("record_count", LongType()) \

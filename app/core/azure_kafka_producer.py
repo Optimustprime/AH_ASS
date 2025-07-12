@@ -26,7 +26,7 @@ class AzureKafkaClickProducer:
             except Exception as e:
                 logger.error(f"Failed to initialize Azure Event Hub producer: {e}")
 
-    def send_click_event(self, advertiser: int, ad_id: str, amount: float, budget_value: float):
+    def send_click_event(self, advertiser: str, advertiser_id: int, ad_id: str, amount: float, budget_value: float):
         """Send ad click event to Azure Event Hub."""
         if not self.producer:
             logger.error("Event Hub producer not initialized")
@@ -36,6 +36,7 @@ class AzureKafkaClickProducer:
             "event_type": "ad_click",
             "click_id": f"c{uuid.uuid4().hex[:6]}",
             "advertiser": str(advertiser),
+            "advertiser_id": str(advertiser_id),
             "ad_id": ad_id,
             "amount": amount,
             "budget_value": budget_value,

@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 import logging
 import sys
+
 sys.path.append('/Workspace/Users/Project/AH_ASS/ad-marketing-pipeline/src')
 from config.settings import DatabaseConfig
 
@@ -55,7 +56,7 @@ class GoldProcessor:
         Returns:
             Aggregated DataFrame with spend metrics
         """
-        gold_df = df.groupBy("advertiser").agg(
+        gold_df = df.groupBy("advertiser", "advertiser_id").agg(
             sum("amount").alias("gross_spend"),
             sum(when(col("is_valid") == True, col("amount")).otherwise(0)).alias("net_spend"),
             count("*").alias("record_count"),
