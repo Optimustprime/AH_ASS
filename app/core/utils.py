@@ -29,6 +29,13 @@ def create_or_update_spend_summary(advertiser_id, click_event_date):
 
         budget_at_time = latest_budget.new_budget_value
 
+        # Check if SpendSummary already exists for this day
+        spend_summary = SpendSummary.objects.filter(
+            advertiser=advertiser,
+            window_start=window_start,
+            window_end=window_end
+        ).first()
+
         # Calculate gross spend from click events in this window
         click_events = ClickEvent.objects.filter(
             advertiser=advertiser,
@@ -46,18 +53,25 @@ def create_or_update_spend_summary(advertiser_id, click_event_date):
         # Determine if can serve (net spend hasn't reached budget)
         can_serve = net_spend < budget_at_time
 
-        # Create or update SpendSummary
-        spend_summary, created = SpendSummary.objects.update_or_create(
-            advertiser=advertiser,
-            window_start=window_start,
-            window_end=window_end,
-            defaults={
-                'gross_spend': gross_spend,
-                'net_spend': net_spend,
-                'budget_at_time': budget_at_time,
-                'can_serve': can_serve
-            }
-        )
+        if spend_summary:
+            # Update existing SpendSummary
+            spend_summary.gross_spend = gross_spend
+            spend_summary.net_spend = net_spend
+            spend_summary.budget_at_time = budget_at_time
+            spend_summary.can_serve = can_serve
+            spend_summary.save()
+        else:
+            # Create new SpendSummary for this day
+            spend_summary = SpendSummary.objects.create(
+                advertiser=advertiser,
+                window_start=window_start,
+                window_end=window_end,
+                gross_spend=gross_spend,
+                net_spend=net_spend,
+                budget_at_time=budget_at_time,
+                can_serve=can_serve
+            )
+
 
         return spend_summary
 
