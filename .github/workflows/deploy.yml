@@ -55,6 +55,18 @@ jobs:
           HADOOP_HOME: ${{ github.workspace }}/hadoop
           PYSPARK_SUBMIT_ARGS: "--conf spark.driver.memory=2g pyspark-shell"
 
+
+  mkdocs:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs-material mkdocs-git-revision-date-localized-plugin mkdocs-mermaid2-plugin mkdocs-minify-plugin pymdown-extensions mkdocstrings
+      - run: mkdocs gh-deploy --force
+
   deploy:
     needs: test
     runs-on: ubuntu-latest
