@@ -65,7 +65,10 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install mkdocs-material mkdocs-git-revision-date-localized-plugin mkdocs-mermaid2-plugin mkdocs-minify-plugin pymdown-extensions mkdocstrings
-      - run: mkdocs gh-deploy --force
+      - name: Build documentation
+        run: |
+          cd ad-marketing-pipeline/docs
+          mkdocs gh-deploy --force
 
   deploy:
     needs: test
