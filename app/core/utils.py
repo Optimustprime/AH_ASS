@@ -86,18 +86,14 @@ def update_budget(request):
             )
 
             # Update SpendSummary
-            spend_summary = SpendSummary.objects.filter(advertiser=advertiser).order_by('-window_end').first()
+            current_time = now()
+            spend_summary = create_or_update_spend_summary(advertiser_id, current_time)
+
             if spend_summary:
-                gross_spend = spend_summary.gross_spend
-                net_spend = min(gross_spend, new_budget_value)
-                can_serve = net_spend < new_budget_value
+                return JsonResponse({"status": "success", "message": "Budget updated successfully."})
+            else:
+                return JsonResponse({"status": "error", "message": "Failed to update spend summary."}, status=500)
 
-                spend_summary.net_spend = net_spend
-                spend_summary.budget_at_time = new_budget_value
-                spend_summary.can_serve = can_serve
-                spend_summary.save()
-
-            return JsonResponse({"status": "success", "message": "Budget updated successfully."})
         except Exception as e:
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
     return JsonResponse({"status": "error", "message": "Invalid request method."}, status=400)
