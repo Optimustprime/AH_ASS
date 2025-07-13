@@ -114,6 +114,7 @@ Input Data Schema
 
 ```mermaid
 classDiagram
+direction LR
     class BronzeSchema {
         +StringType event_type
         +StringType click_id
@@ -157,5 +158,73 @@ classDiagram
         +TimestampType spend_month
     }
     
+    class CombinedSpendBudget {
+        +String advertiser
+        +Timestamp spend_day
+        +String category
+        +Float amount
+    }
+
+    class LatestChangedBudgets {
+        +String advertiser
+        +Timestamp spend_hour
+        +Float budget_value
+    }
+
+    class LatestServingStatus {
+        +String advertiser
+        +Timestamp latest_hour
+        +Boolean latest_can_serve
+    }
+
+    class HourlyAverageBudget {
+        +String advertiser
+        +Timestamp spend_hour
+        +Float avg_budget
+    }
+
+    class AggregatedAdvertiserSpend {
+        +String advertiser
+        +Float total_gross_spend
+        +Float total_net_spend
+        +Long total_clicks
+        +Float latest_budget_value
+        +Timestamp latest_activity_time
+        +Boolean current_serving_status
+    }
+
+    class MonthlySpend {
+        +String advertiser
+        +Timestamp spend_month
+        +Float monthly_gross_spend
+        +Float monthly_net_spend
+        +Long total_clicks
+        +Float budget_value
+        +Boolean can_serve_status
+    }
+
+    class HourlySpend {
+        +String advertiser
+        +Timestamp spend_hour_start
+        +Timestamp spend_hour_end
+        +Float hourly_gross_spend
+        +Float hourly_net_spend
+    }
+
+    class DailySpend {
+        +String advertiser
+        +Timestamp spend_day
+        +Float daily_gross_spend
+        +Float daily_net_spend
+    }
+    
     BronzeSchema --> SilverSchema: Cleaned & Validated
     SilverSchema --> GoldSchema: Aggregated by Advertiser
+    GoldSchema <|-- CombinedSpendBudget
+    GoldSchema <|-- LatestChangedBudgets
+    GoldSchema <|-- LatestServingStatus
+    GoldSchema <|-- HourlyAverageBudget
+    GoldSchema <|-- AggregatedAdvertiserSpend
+    GoldSchema <|-- MonthlySpend
+    GoldSchema <|-- HourlySpend
+    GoldSchema <|-- DailySpend

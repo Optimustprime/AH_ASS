@@ -26,7 +26,7 @@ plugins:
   - mkdocstrings:
       handlers:
         python:
-          paths: [ad-marketing-pipeline/src]
+          paths: [./AH_ASS, ./ad-marketing-pipeline/notebooks]
           options:
             docstring_style: google
   - git-revision-date-localized:
@@ -60,3 +60,10 @@ markdown_extensions:
 
 nav:
   - Home: index.md
+#   - Notebooks:
+#       - Orchestration:
+#         - Bronze to Silver: notebooks/orchestration/run_bronze_to_silver.md
+#         - Silver to Gold: notebooks/orchestration/run_silver_to_gold.md
+#         - Setup Streaming: notebooks/orchestration/setup_streaming.md
+#       - Setup:
+#         - Provision Tables: notebooks/setup/provision_tables.md

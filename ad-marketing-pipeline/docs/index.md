@@ -18,6 +18,18 @@ For detailed API documentation, see:
 - [Streaming](api-reference/streaming.md)
 - [Configuration](api-reference/config.md)
 
+## Notebooks
+
+Key notebooks used in this pipeline:
+
+### Orchestration
+- [Bronze to Silver Processing](api-reference/run_bronze_to_silver.md)
+- [Silver to Gold Processing](api-reference/run_silver_to_gold.md)
+- [Setup Streaming](api-reference/setup_streaming.md)
+
+### Setup
+- [Provision Tables](api-reference/provision_tables.md)
+
 ## Schema Diagram
 
 ![Schema](assets/schema.png)
