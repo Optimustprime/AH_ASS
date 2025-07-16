@@ -63,49 +63,6 @@ services:
       KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka:9091"
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-#
-#   kafka-1:
-#     image: confluentinc/cp-kafka
-#     container_name: kafka-1
-#     networks:
-#       - kafka-net
-#     depends_on:
-#       - zookeeper
-#     ports:
-#       - "9092:9092"
-#     environment:
-#       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-#       KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-1:9092"
-#       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-#       KAFKA_DEFAULT_REPLICATION_FACTOR: 1
-
-#     kafka-2:
-#       image: confluentinc/cp-kafka
-#       container_name: kafka-2
-#       networks:
-#         - kafka-net
-#       depends_on:
-#         - zookeeper
-#       ports:
-#         - "9093:9093"
-#       environment:
-#         KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-#         KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-2:9093"
-#         KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-#         KAFKA_DEFAULT_REPLICATION_FACTOR: 1
-
-#     kafka-3:
-#       image: confluentinc/cp-kafka
-#       container_name: kafka-3
-#       networks:
-#         - kafka-net
-#       depends_on:
-#         - zookeeper
-#       environment:
-#         KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
-#         KAFKA_ADVERTISED_LISTENERS: "PLAINTEXT://kafka-3:9094"
-#         KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-#         KAFKA_DEFAULT_REPLICATION_FACTOR: 1
 
 
 networks:

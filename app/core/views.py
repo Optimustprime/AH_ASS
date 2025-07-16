@@ -243,7 +243,7 @@ def track_ad_click(request):
                 json.dumps(
                     {
                         "status": "success",
-                        "click_id": click_event.click_id
+                        "click_id": str(click_event.click_id)
                         if hasattr(click_event, "click_id")
                         else None,
                         "can_serve": spend_summary.can_serve if spend_summary else True,
